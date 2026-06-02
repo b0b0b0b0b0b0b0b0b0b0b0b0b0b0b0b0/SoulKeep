@@ -2,7 +2,6 @@ package bm.b0b0b0.soulKeep.service;
 
 import bm.b0b0b0.soulKeep.config.PermissionBoostTable;
 import bm.b0b0b0.soulKeep.config.SoulChanceSettings;
-import bm.b0b0b0.soulKeep.util.SoulKeepLog;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
@@ -14,15 +13,10 @@ public final class ChanceCalculationService {
 
     private final SoulChanceSettings chanceSettings;
     private final PermissionBoostTable permissionBoosts;
-    private final SoulKeepLog log;
 
-    public ChanceCalculationService(
-            SoulChanceSettings chanceSettings,
-            PermissionBoostTable permissionBoosts,
-            SoulKeepLog log) {
+    public ChanceCalculationService(SoulChanceSettings chanceSettings, PermissionBoostTable permissionBoosts) {
         this.chanceSettings = chanceSettings;
         this.permissionBoosts = permissionBoosts;
-        this.log = log;
     }
 
     public double resolveFinalChance(Player player, Material material) {
@@ -33,10 +27,7 @@ public final class ChanceCalculationService {
 
     public boolean rollSuccess(Player player, Material material) {
         double chance = resolveFinalChance(player, material);
-        double roll = ThreadLocalRandom.current().nextDouble(100.0);
-        boolean success = roll < chance;
-        log.info(player, "roll " + material.name() + ": rolled=" + roll + " need<" + chance + " success=" + success);
-        return success;
+        return ThreadLocalRandom.current().nextDouble(100.0) < chance;
     }
 
     public String formatChance(Player player, Material material) {

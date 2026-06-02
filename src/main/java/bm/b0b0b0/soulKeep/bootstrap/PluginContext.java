@@ -1,5 +1,6 @@
 package bm.b0b0b0.soulKeep.bootstrap;
 
+import bm.b0b0b0.soulKeep.command.AdminDebugService;
 import bm.b0b0b0.soulKeep.command.KeepSoulCommand;
 import bm.b0b0b0.soulKeep.config.PluginConfig;
 import bm.b0b0b0.soulKeep.gui.GuiItemFactory;
@@ -30,42 +31,36 @@ public final class PluginContext {
 
     public PluginContext(JavaPlugin plugin) {
         PluginConfig pluginConfig = new PluginConfig(plugin);
-        SoulKeepLog log = new SoulKeepLog(plugin);
-        log.info("plugin context init");
-
         DatabaseConnectionProvider databaseConnectionProvider =
                 new DatabaseConnectionProvider(plugin, pluginConfig.getDatabaseSettings());
         AsyncDatabaseExecutor asyncDatabaseExecutor = new AsyncDatabaseExecutor(plugin);
         PlayerProtectionDao playerProtectionDao = new PlayerProtectionDao(databaseConnectionProvider);
         PendingRestoreDao pendingRestoreDao = new PendingRestoreDao(databaseConnectionProvider);
+        SqlitePendingRestorePersistence pendingPersistence = new SqlitePendingRestorePersistence(pendingRestoreDao);
         PlayerProtectionRepository playerProtectionRepository =
                 new PlayerProtectionRepository(plugin, playerProtectionDao, asyncDatabaseExecutor);
         InventoryRestoreService inventoryRestoreService = new InventoryRestoreService();
         PendingRestoreRepository pendingRestoreRepository = new PendingRestoreRepository(
                 plugin,
-                new SqlitePendingRestorePersistence(pendingRestoreDao),
+                pendingPersistence,
                 asyncDatabaseExecutor,
-                inventoryRestoreService,
-                log);
+                inventoryRestoreService);
         this.lifecycle = new PluginLifecycle(databaseConnectionProvider, playerProtectionRepository);
 
-        MessageService messageService = new MessageService(plugin);
+        MessageService messageService = new MessageService(plugin, pluginConfig.getMessageNotifySettings());
         ChanceCalculationService chanceCalculationService = new ChanceCalculationService(
                 pluginConfig.getChanceSettings(),
-                pluginConfig.getPermissionBoosts(),
-                log);
+                pluginConfig.getPermissionBoosts());
         ProtectionManagementService protectionManagementService = new ProtectionManagementService(
                 playerProtectionRepository,
                 pluginConfig.getPermissionSlots(),
                 chanceCalculationService,
-                messageService,
-                log);
+                messageService);
         DeathProtectionService deathProtectionService = new DeathProtectionService(
                 playerProtectionRepository,
                 chanceCalculationService,
                 pendingRestoreRepository,
-                messageService,
-                log);
+                messageService);
         plugin.getServer().getOnlinePlayers().forEach(player -> {
             playerProtectionRepository.loadAsync(player.getUniqueId());
             deathProtectionService.deliverPending(player);
@@ -77,19 +72,24 @@ public final class PluginContext {
                 chanceCalculationService,
                 guiItemFactory,
                 protectionManagementService,
-                messageService,
-                log);
+                messageService);
         ProtectionMenuService protectionMenuService = new ProtectionMenuService(
                 protectionManagementService,
                 protectionMenuFactory);
+        AdminDebugService adminDebugService = new AdminDebugService(
+                playerProtectionRepository,
+                pendingRestoreRepository,
+                pendingPersistence,
+                chanceCalculationService,
+                new SoulKeepLog(plugin));
         KeepSoulCommand keepSoulCommand = new KeepSoulCommand(
                 protectionManagementService,
                 protectionMenuService,
+                adminDebugService,
                 messageService);
 
         registerListeners(plugin, deathProtectionService, playerProtectionRepository);
         registerCommands(plugin, keepSoulCommand);
-        log.info("plugin context ready");
     }
 
     public PluginLifecycle getLifecycle() {

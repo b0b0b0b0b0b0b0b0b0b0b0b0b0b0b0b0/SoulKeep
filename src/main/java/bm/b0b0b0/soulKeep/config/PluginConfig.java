@@ -9,10 +9,12 @@ public final class PluginConfig {
     private final PermissionSlotTable permissionSlots;
     private final DatabaseSettings databaseSettings;
     private final GuiSettings guiSettings;
+    private final MessageNotifySettings messageNotifySettings;
 
     public PluginConfig(JavaPlugin plugin) {
         SoulKeepSettings settings = new SoulKeepSettings();
         settings.load(plugin);
+        this.messageNotifySettings = new MessageNotifySettings(settings);
         this.chanceSettings = new SoulChanceSettings(settings);
         this.permissionBoosts = new PermissionBoostTable(settings);
         this.permissionSlots = new PermissionSlotTable(settings);
@@ -38,5 +40,9 @@ public final class PluginConfig {
 
     public GuiSettings getGuiSettings() {
         return guiSettings;
+    }
+
+    public MessageNotifySettings getMessageNotifySettings() {
+        return messageNotifySettings;
     }
 }

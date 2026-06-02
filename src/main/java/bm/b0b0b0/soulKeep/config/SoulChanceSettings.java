@@ -14,7 +14,10 @@ public final class SoulChanceSettings {
 
     public SoulChanceSettings(SoulKeepSettings settings) {
         this.defaultChance = settings.settings.defaultChance;
-        this.itemOverrides = parseItemOverrides(settings.itemOverrides);
+        ItemOverridesSection overrides = settings.itemOverrides;
+        this.itemOverrides = overrides.enabled
+                ? parseItemOverrides(overrides.entries)
+                : Collections.emptyMap();
     }
 
     public double resolveBaseChance(Material material) {

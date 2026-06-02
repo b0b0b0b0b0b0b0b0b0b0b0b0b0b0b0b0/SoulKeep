@@ -4,7 +4,10 @@ import net.elytrium.serializer.annotations.RegisterPlaceholders;
 import net.elytrium.serializer.language.object.YamlSerializable;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 @RegisterPlaceholders({"prefix"})
 public final class MessagesSettings extends YamlSerializable {
@@ -17,13 +20,26 @@ public final class MessagesSettings extends YamlSerializable {
     public GuiSection gui = new GuiSection();
 
     public void load(JavaPlugin plugin) {
-        plugin.getDataFolder().mkdirs();
-        reload(plugin.getDataFolder().toPath().resolve("messages.yml"));
+        Path dataFolder = plugin.getDataFolder().toPath();
+        Path messagesFile = dataFolder.resolve("lang/messages.yml");
+        Path legacyFile = dataFolder.resolve("messages.yml");
+        try {
+            Files.createDirectories(messagesFile.getParent());
+            if (Files.notExists(messagesFile) && Files.isRegularFile(legacyFile)) {
+                Files.move(legacyFile, messagesFile, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to prepare lang/messages.yml", exception);
+        }
+        reload(messagesFile);
     }
 
     public static final class CommandSection {
         public String playerOnly = "{prefix}&cТолько для игроков.";
         public String unknownSubcommand = "{prefix}&cНеизвестная подкоманда.";
+        public String noPermission = "{prefix}&cНет прав.";
+        public String playerNotFound = "{prefix}&cИгрок не найден.";
+        public String debugDone = "{prefix}&7Debug записан в консоль сервера (&f{player}&7).";
     }
 
     public static final class ProtectionSection {

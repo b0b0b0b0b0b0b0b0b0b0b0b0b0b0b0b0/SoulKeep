@@ -20,3 +20,6 @@ permissions:
   keepsoul.use:
     description: Использование команд SoulKeep
     default: true
+  keepsoul.debug:
+    description: Debug-дамп в консоль (/keepsoul debug)
+    default: op

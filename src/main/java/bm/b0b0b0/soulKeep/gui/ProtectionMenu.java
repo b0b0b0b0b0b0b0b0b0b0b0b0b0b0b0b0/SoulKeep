@@ -6,7 +6,6 @@ import bm.b0b0b0.soulKeep.message.MessageService;
 import bm.b0b0b0.soulKeep.model.PlayerProtectionData;
 import bm.b0b0b0.soulKeep.service.ChanceCalculationService;
 import bm.b0b0b0.soulKeep.service.ProtectionManagementService;
-import bm.b0b0b0.soulKeep.util.SoulKeepLog;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -30,7 +29,6 @@ public final class ProtectionMenu implements InventoryHolder {
     private final GuiItemFactory itemFactory;
     private final ProtectionManagementService protectionService;
     private final MessageService messages;
-    private final SoulKeepLog log;
     private final Inventory inventory;
 
     public ProtectionMenu(
@@ -41,8 +39,7 @@ public final class ProtectionMenu implements InventoryHolder {
             ChanceCalculationService chanceService,
             GuiItemFactory itemFactory,
             ProtectionManagementService protectionService,
-            MessageService messages,
-            SoulKeepLog log) {
+            MessageService messages) {
         this.ownerId = owner.getUniqueId();
         this.guiSettings = guiSettings;
         this.permissionSlots = permissionSlots;
@@ -50,7 +47,6 @@ public final class ProtectionMenu implements InventoryHolder {
         this.itemFactory = itemFactory;
         this.protectionService = protectionService;
         this.messages = messages;
-        this.log = log;
         this.inventory = Bukkit.createInventory(
                 this,
                 guiSettings.getSize(),
@@ -86,19 +82,16 @@ public final class ProtectionMenu implements InventoryHolder {
         protectionService.findData(player).ifPresent(data -> {
             int count = data.getProtectedCount();
             if (logicalIndex < count) {
-                log.info(player, "gui remove index=" + logicalIndex + " invSlot=" + slot);
                 protectionService.tryRemoveAtSlot(player, logicalIndex);
                 redraw(player);
                 return;
             }
             Material toAdd = resolveMaterialToAdd(player, event);
-            log.info(player, "gui add click index=" + logicalIndex + " invSlot=" + slot + " material=" + toAdd.name());
             if (toAdd.isAir()) {
                 messages.send(player, "protection.empty-hand");
                 return;
             }
             ProtectionManagementService.AddResult result = protectionService.tryAddAtSlot(player, toAdd, logicalIndex);
-            log.info(player, "gui add result=" + result.name());
             if (result == ProtectionManagementService.AddResult.ALREADY_PROTECTED) {
                 protectionService.sendAlreadyProtected(player, toAdd);
             } else if (result == ProtectionManagementService.AddResult.LIMIT_REACHED) {

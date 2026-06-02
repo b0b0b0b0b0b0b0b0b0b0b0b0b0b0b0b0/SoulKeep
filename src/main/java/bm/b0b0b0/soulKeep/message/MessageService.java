@@ -1,5 +1,6 @@
 package bm.b0b0b0.soulKeep.message;
 
+import bm.b0b0b0.soulKeep.config.MessageNotifySettings;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -11,10 +12,12 @@ public final class MessageService {
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacyAmpersand();
 
     private final MessagesSettings messages;
+    private final MessageNotifySettings notify;
 
-    public MessageService(JavaPlugin plugin) {
+    public MessageService(JavaPlugin plugin, MessageNotifySettings notify) {
         this.messages = new MessagesSettings();
         this.messages.load(plugin);
+        this.notify = notify;
     }
 
     public void send(CommandSender sender, String path) {
@@ -22,8 +25,11 @@ public final class MessageService {
     }
 
     public void send(CommandSender sender, String path, Map<String, String> placeholders) {
+        if (!notify.isEnabled(path)) {
+            return;
+        }
         String raw = resolveRaw(path, placeholders);
-        if (raw == null) {
+        if (raw == null || raw.isBlank()) {
             return;
         }
         sender.sendMessage(LEGACY.deserialize(raw));
@@ -41,6 +47,9 @@ public final class MessageService {
         return switch (path) {
             case "command.player-only" -> messages.command.playerOnly;
             case "command.unknown-subcommand" -> messages.command.unknownSubcommand;
+            case "command.no-permission" -> messages.command.noPermission;
+            case "command.player-not-found" -> messages.command.playerNotFound;
+            case "command.debug-done" -> messages.command.debugDone;
             case "protection.added" -> messages.protection.added;
             case "protection.removed" -> messages.protection.removed;
             case "protection.not-protected" -> messages.protection.notProtected;

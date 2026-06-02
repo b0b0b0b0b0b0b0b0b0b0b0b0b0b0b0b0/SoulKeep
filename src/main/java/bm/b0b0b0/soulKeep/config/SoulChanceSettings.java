@@ -1,5 +1,6 @@
 package bm.b0b0b0.soulKeep.config;
 
+import bm.b0b0b0.soulKeep.util.MaterialParser;
 import org.bukkit.Material;
 
 import java.util.Collections;
@@ -23,11 +24,8 @@ public final class SoulChanceSettings {
     private static Map<Material, Double> parseItemOverrides(Map<String, Double> raw) {
         EnumMap<Material, Double> overrides = new EnumMap<>(Material.class);
         for (Map.Entry<String, Double> entry : raw.entrySet()) {
-            Material material = Material.matchMaterial(entry.getKey());
-            if (material == null || !material.isItem()) {
-                continue;
-            }
-            overrides.put(material, entry.getValue());
+            MaterialParser.parse(entry.getKey()).ifPresent(material ->
+                    overrides.put(material, entry.getValue()));
         }
         return Collections.unmodifiableMap(overrides);
     }

@@ -1,5 +1,6 @@
 package bm.b0b0b0.soulKeep.database;
 
+import bm.b0b0b0.soulKeep.util.MaterialParser;
 import org.bukkit.Material;
 
 import java.util.ArrayList;
@@ -34,10 +35,7 @@ public final class ProtectedMaterialCodec {
             if (name.isBlank()) {
                 continue;
             }
-            Material material = Material.matchMaterial(name.trim());
-            if (material != null && material.isItem()) {
-                materials.add(material);
-            }
+            MaterialParser.parse(name.trim()).ifPresent(materials::add);
         }
         return materials;
     }

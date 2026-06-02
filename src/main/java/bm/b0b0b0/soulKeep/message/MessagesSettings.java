@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
 
 @RegisterPlaceholders({"prefix"})
 public final class MessagesSettings extends YamlSerializable {
@@ -65,30 +64,6 @@ public final class MessagesSettings extends YamlSerializable {
     }
 
     public static final class GuiSection {
-        public String fillerName = " ";
-        public String emptySlotName = "&7Пустой слот";
-        public String lockedSlotName = "&cЗакрыто";
-        public String lockedSlotLore = "&7Нужен донат-ранг";
-        public String protectedSlotName = "&f{material}";
-        public String protectedSlotLore = "&7Шанс: &f{chance}%&7, ЛКМ — убрать";
         public String slotLocked = "{prefix}&cЭтот слот недоступен. Повысьте ранг.";
-        public String infoName = "&dДля чего это";
-        public List<String> infoLore = defaultInfoLore();
-    }
-
-    private static List<String> defaultInfoLore() {
-        return List.of(
-                "",
-                "&7Положи предмет сюда — ты отдаёшь",
-                "&7ему &dчасть души&7.",
-                "",
-                "&7Когда умрёшь, душа запросит",
-                "&7удержанные вещи из &5Портала Забвения&7",
-                "&7и возродит их вместе с твоей тушкой.",
-                "",
-                "&8Не все вещи вернутся:",
-                "&8часть из них при запросе",
-                "&8уходит в небытие."
-        );
     }
 }

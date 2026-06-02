@@ -46,7 +46,7 @@ public final class SoulKeepSettings extends YamlSerializable {
     @Comment({
             @CommentValue("Включение сообщений в чат (true — показывать, false — тихо)."),
             @CommentValue("Тексты сообщений — в lang/messages.yml"),
-            @CommentValue("Меню /keepsoul — в gui/main.yml")
+            @CommentValue("Меню /keepsoul — gui/main.yml (layout и тексты предметов)")
     })
     public NotifySection notify = new NotifySection();
 

@@ -65,7 +65,7 @@ public final class PluginContext {
             playerProtectionRepository.loadAsync(player.getUniqueId());
             deathProtectionService.deliverPending(player);
         });
-        GuiItemFactory guiItemFactory = new GuiItemFactory(messageService);
+        GuiItemFactory guiItemFactory = new GuiItemFactory(pluginConfig.getGuiSettings());
         ProtectionMenuFactory protectionMenuFactory = new ProtectionMenuFactory(
                 pluginConfig.getGuiSettings(),
                 pluginConfig.getPermissionSlots(),

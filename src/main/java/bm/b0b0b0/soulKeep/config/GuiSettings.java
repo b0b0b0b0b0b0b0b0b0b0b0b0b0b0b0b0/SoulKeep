@@ -1,6 +1,7 @@
 package bm.b0b0b0.soulKeep.config;
 
 import java.util.List;
+import java.util.Map;
 
 public final class GuiSettings {
 
@@ -12,6 +13,14 @@ public final class GuiSettings {
     private final String lockedSlotMaterial;
     private final int infoSlot;
     private final String infoMaterial;
+    private final String fillerName;
+    private final String emptySlotName;
+    private final String lockedSlotName;
+    private final String lockedSlotLore;
+    private final String protectedSlotName;
+    private final String protectedSlotLore;
+    private final String infoName;
+    private final List<String> infoLore;
 
     public GuiSettings(GuiMainSettings settings) {
         this.title = settings.title;
@@ -22,6 +31,14 @@ public final class GuiSettings {
         this.lockedSlotMaterial = settings.lockedSlotMaterial;
         this.infoSlot = settings.infoSlot;
         this.infoMaterial = settings.infoMaterial;
+        this.fillerName = settings.fillerName;
+        this.emptySlotName = settings.emptySlotName;
+        this.lockedSlotName = settings.lockedSlotName;
+        this.lockedSlotLore = settings.lockedSlotLore;
+        this.protectedSlotName = settings.protectedSlotName;
+        this.protectedSlotLore = settings.protectedSlotLore;
+        this.infoName = settings.infoName;
+        this.infoLore = List.copyOf(settings.infoLore);
     }
 
     public String getTitle() {
@@ -74,5 +91,45 @@ public final class GuiSettings {
 
     public String getInfoMaterial() {
         return infoMaterial;
+    }
+
+    public String format(String template, Map<String, String> placeholders) {
+        String result = template;
+        for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+            result = result.replace("{" + entry.getKey() + "}", entry.getValue());
+        }
+        return result;
+    }
+
+    public String getFillerName() {
+        return fillerName;
+    }
+
+    public String getEmptySlotName() {
+        return emptySlotName;
+    }
+
+    public String getLockedSlotName() {
+        return lockedSlotName;
+    }
+
+    public String getLockedSlotLore() {
+        return lockedSlotLore;
+    }
+
+    public String getProtectedSlotName(Map<String, String> placeholders) {
+        return format(protectedSlotName, placeholders);
+    }
+
+    public String getProtectedSlotLore(Map<String, String> placeholders) {
+        return format(protectedSlotLore, placeholders);
+    }
+
+    public String getInfoName() {
+        return infoName;
+    }
+
+    public List<String> getInfoLore() {
+        return infoLore;
     }
 }

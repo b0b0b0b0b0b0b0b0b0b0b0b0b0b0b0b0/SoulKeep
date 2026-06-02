@@ -1,6 +1,6 @@
 package bm.b0b0b0.soulKeep.gui;
 
-import bm.b0b0b0.soulKeep.message.MessageService;
+import bm.b0b0b0.soulKeep.config.GuiSettings;
 import bm.b0b0b0.soulKeep.util.MaterialParser;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Material;
@@ -16,30 +16,30 @@ public final class GuiItemFactory {
 
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacyAmpersand();
 
-    private final MessageService messages;
+    private final GuiSettings guiSettings;
 
-    public GuiItemFactory(MessageService messages) {
-        this.messages = messages;
+    public GuiItemFactory(GuiSettings guiSettings) {
+        this.guiSettings = guiSettings;
     }
 
     public ItemStack filler(String materialName) {
-        return displayItem(materialName, "gui.filler-name", Map.of());
+        return displayItem(materialName, guiSettings.getFillerName(), null);
     }
 
     public ItemStack emptySlot(String materialName) {
-        return displayItem(materialName, "gui.empty-slot-name", Map.of());
+        return displayItem(materialName, guiSettings.getEmptySlotName(), null);
     }
 
     public ItemStack lockedSlot(String materialName) {
-        return displayItem(materialName, "gui.locked-slot-name", "gui.locked-slot-lore", Map.of());
+        return displayItem(materialName, guiSettings.getLockedSlotName(), guiSettings.getLockedSlotLore());
     }
 
     public ItemStack infoButton(String materialName) {
         Material material = MaterialParser.parse(materialName).orElse(Material.KNOWLEDGE_BOOK);
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
-        meta.displayName(LEGACY.deserialize(messages.resolveRaw("gui.info-name", Map.of())));
-        meta.lore(messages.resolveRawLines("gui.info-lore", Map.of()).stream()
+        meta.displayName(LEGACY.deserialize(guiSettings.getInfoName()));
+        meta.lore(guiSettings.getInfoLore().stream()
                 .map(LEGACY::deserialize)
                 .toList());
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
@@ -50,30 +50,23 @@ public final class GuiItemFactory {
     public ItemStack protectedSlot(Player viewer, Material material, String chanceText) {
         ItemStack display = ProtectionDisplayStackResolver.resolve(viewer, material);
         ItemMeta meta = display.getItemMeta();
-        meta.displayName(LEGACY.deserialize(messages.resolveRaw("gui.protected-slot-name", Map.of(
-                "material", material.name()))));
-        meta.lore(List.of(LEGACY.deserialize(messages.resolveRaw("gui.protected-slot-lore", Map.of(
-                "chance", chanceText)))));
+        Map<String, String> placeholders = Map.of(
+                "material", material.name(),
+                "chance", chanceText);
+        meta.displayName(LEGACY.deserialize(guiSettings.getProtectedSlotName(placeholders)));
+        meta.lore(List.of(LEGACY.deserialize(guiSettings.getProtectedSlotLore(placeholders))));
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         display.setItemMeta(meta);
         return display;
     }
 
-    private ItemStack displayItem(String materialName, String namePath, Map<String, String> placeholders) {
-        return displayItem(materialName, namePath, null, placeholders);
-    }
-
-    private ItemStack displayItem(
-            String materialName,
-            String namePath,
-            String lorePath,
-            Map<String, String> placeholders) {
+    private ItemStack displayItem(String materialName, String name, String loreLine) {
         Material material = MaterialParser.parse(materialName).orElse(Material.STONE);
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
-        meta.displayName(LEGACY.deserialize(messages.resolveRaw(namePath, placeholders)));
-        if (lorePath != null) {
-            meta.lore(List.of(LEGACY.deserialize(messages.resolveRaw(lorePath, placeholders))));
+        meta.displayName(LEGACY.deserialize(name));
+        if (loreLine != null) {
+            meta.lore(List.of(LEGACY.deserialize(loreLine)));
         }
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         stack.setItemMeta(meta);

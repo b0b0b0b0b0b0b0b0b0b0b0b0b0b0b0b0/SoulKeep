@@ -23,14 +23,39 @@ public final class GuiMainSettings extends YamlSerializable {
     public String emptySlotMaterial = "GRAY_STAINED_GLASS_PANE";
     public String lockedSlotMaterial = "BARRIER";
 
+    public String fillerName = " ";
+    public String emptySlotName = "&7Пустой слот";
+    public String lockedSlotName = "&cЗакрыто";
+    public String lockedSlotLore = "&7Нужен донат-ранг";
+    public String protectedSlotName = "&f{material}";
+    public String protectedSlotLore = "&7Шанс: &f{chance}%&7, ЛКМ — убрать";
+
     @Comment(@CommentValue("Слот справки внизу по центру (3 ряда = 22). -1 — выключить"))
     public int infoSlot = 22;
 
     public String infoMaterial = "KNOWLEDGE_BOOK";
+    public String infoName = "&dДля чего это";
+    public List<String> infoLore = defaultInfoLore();
 
     public void load(JavaPlugin plugin) {
         Path file = plugin.getDataFolder().toPath().resolve("gui/main.yml");
         file.getParent().toFile().mkdirs();
         reload(file);
+    }
+
+    private static List<String> defaultInfoLore() {
+        return List.of(
+                "",
+                "&7Положи предмет сюда — ты отдаёшь",
+                "&7ему &dчасть души&7.",
+                "",
+                "&7Когда умрёшь, душа запросит",
+                "&7удержанные вещи из &5Портала Забвения&7",
+                "&7и возродит их вместе с твоей тушкой.",
+                "",
+                "&8Не все вещи вернутся:",
+                "&8часть из них при запросе",
+                "&8уходит в небытие."
+        );
     }
 }

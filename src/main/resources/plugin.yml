@@ -12,7 +12,7 @@ libraries:
 commands:
   keepsoul:
     description: Управление защитой предметов при смерти
-    usage: /keepsoul <add|remove|list|clear>
+    usage: /keepsoul
     aliases: [ ks, soulkeep ]
     permission: keepsoul.use
 

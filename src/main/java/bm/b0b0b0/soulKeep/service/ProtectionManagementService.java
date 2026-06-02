@@ -110,6 +110,10 @@ public final class ProtectionManagementService {
         messages.send(player, "protection.not-protected", Map.of("material", formatMaterial(material)));
     }
 
+    public Optional<PlayerProtectionData> findData(Player player) {
+        return requireData(player);
+    }
+
     private Optional<PlayerProtectionData> requireData(Player player) {
         if (!repository.isReady(player.getUniqueId())) {
             messages.send(player, "protection.data-loading");

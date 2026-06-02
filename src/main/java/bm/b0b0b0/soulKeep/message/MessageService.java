@@ -24,11 +24,19 @@ public final class MessageService {
     }
 
     public void send(CommandSender sender, String path, Map<String, String> placeholders) {
-        String raw = resolveRaw(path);
+        String raw = resolveRaw(path, placeholders);
         if (raw == null) {
             return;
         }
-        sender.sendMessage(LEGACY.deserialize(applyPlaceholders(raw, placeholders)));
+        sender.sendMessage(LEGACY.deserialize(raw));
+    }
+
+    public String resolveRaw(String path, Map<String, String> placeholders) {
+        String raw = resolveRaw(path);
+        if (raw == null) {
+            return "";
+        }
+        return applyPlaceholders(raw, placeholders);
     }
 
     private String resolveRaw(String path) {
@@ -49,6 +57,13 @@ public final class MessageService {
             case "protection.cleared" -> messages.protection.cleared;
             case "death.saved" -> messages.death.saved;
             case "death.nothing-saved" -> messages.death.nothingSaved;
+            case "gui.filler-name" -> messages.gui.fillerName;
+            case "gui.empty-slot-name" -> messages.gui.emptySlotName;
+            case "gui.locked-slot-name" -> messages.gui.lockedSlotName;
+            case "gui.locked-slot-lore" -> messages.gui.lockedSlotLore;
+            case "gui.protected-slot-name" -> messages.gui.protectedSlotName;
+            case "gui.protected-slot-lore" -> messages.gui.protectedSlotLore;
+            case "gui.slot-locked" -> messages.gui.slotLocked;
             default -> null;
         };
     }

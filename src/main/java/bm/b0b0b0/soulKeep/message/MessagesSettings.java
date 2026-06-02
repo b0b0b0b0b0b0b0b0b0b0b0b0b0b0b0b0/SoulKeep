@@ -14,6 +14,7 @@ public final class MessagesSettings extends YamlSerializable {
     public CommandSection command = new CommandSection();
     public ProtectionSection protection = new ProtectionSection();
     public DeathSection death = new DeathSection();
+    public GuiSection gui = new GuiSection();
 
     public void load(JavaPlugin plugin) {
         plugin.getDataFolder().mkdirs();
@@ -43,5 +44,15 @@ public final class MessagesSettings extends YamlSerializable {
     public static final class DeathSection {
         public String saved = "{prefix}&aСохранено предметов: &f{count}";
         public String nothingSaved = "{prefix}&7На этот раз ничего не удержано душой.";
+    }
+
+    public static final class GuiSection {
+        public String fillerName = " ";
+        public String emptySlotName = "&7Пустой слот";
+        public String lockedSlotName = "&cЗакрыто";
+        public String lockedSlotLore = "&7Нужен донат-ранг";
+        public String protectedSlotName = "&f{material}";
+        public String protectedSlotLore = "&7Шанс: &f{chance}%&7, ЛКМ — убрать";
+        public String slotLocked = "{prefix}&cЭтот слот недоступен. Повысьте ранг.";
     }
 }

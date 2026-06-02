@@ -8,6 +8,7 @@ public final class PluginConfig {
     private final PermissionBoostTable permissionBoosts;
     private final PermissionSlotTable permissionSlots;
     private final DatabaseSettings databaseSettings;
+    private final GuiSettings guiSettings;
 
     public PluginConfig(JavaPlugin plugin) {
         SoulKeepSettings settings = new SoulKeepSettings();
@@ -16,6 +17,7 @@ public final class PluginConfig {
         this.permissionBoosts = new PermissionBoostTable(settings);
         this.permissionSlots = new PermissionSlotTable(settings);
         this.databaseSettings = new DatabaseSettings(settings);
+        this.guiSettings = new GuiSettings(settings);
     }
 
     public SoulChanceSettings getChanceSettings() {
@@ -32,5 +34,9 @@ public final class PluginConfig {
 
     public DatabaseSettings getDatabaseSettings() {
         return databaseSettings;
+    }
+
+    public GuiSettings getGuiSettings() {
+        return guiSettings;
     }
 }

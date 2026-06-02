@@ -1,5 +1,6 @@
 package bm.b0b0b0.soulKeep.command;
 
+import bm.b0b0b0.soulKeep.gui.ProtectionMenuService;
 import bm.b0b0b0.soulKeep.message.MessageService;
 import bm.b0b0b0.soulKeep.service.ProtectionManagementService;
 import org.bukkit.Material;
@@ -8,6 +9,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -17,11 +19,16 @@ public final class KeepSoulCommand implements CommandExecutor, TabCompleter {
     private static final List<String> SUBCOMMANDS = List.of("add", "remove", "list", "clear");
 
     private final ProtectionManagementService protectionService;
+    private final ProtectionMenuService menuService;
     private final MessageService messages;
     private final MaterialArgumentResolver materialArgumentResolver;
 
-    public KeepSoulCommand(ProtectionManagementService protectionService, MessageService messages) {
+    public KeepSoulCommand(
+            ProtectionManagementService protectionService,
+            ProtectionMenuService menuService,
+            MessageService messages) {
         this.protectionService = protectionService;
+        this.menuService = menuService;
         this.messages = messages;
         this.materialArgumentResolver = new MaterialArgumentResolver(messages);
     }
@@ -33,14 +40,15 @@ public final class KeepSoulCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         if (args.length == 0) {
-            return false;
+            menuService.open(player);
+            return true;
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
         switch (sub) {
             case "add" -> handleAdd(player, args);
             case "remove" -> handleRemove(player, args);
             case "list" -> protectionService.list(player);
-            case "clear" -> protectionService.clear(player);
+            case "clear" -> handleClear(player);
             default -> messages.send(sender, "command.unknown-subcommand");
         }
         return true;
@@ -64,6 +72,10 @@ public final class KeepSoulCommand implements CommandExecutor, TabCompleter {
                 protectionService.sendNotProtected(player, material);
             }
         });
+    }
+
+    private void handleClear(Player player) {
+        protectionService.clear(player);
     }
 
     @Override

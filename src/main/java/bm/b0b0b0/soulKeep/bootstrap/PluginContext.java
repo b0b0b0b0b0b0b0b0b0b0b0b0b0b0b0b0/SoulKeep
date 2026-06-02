@@ -2,6 +2,10 @@ package bm.b0b0b0.soulKeep.bootstrap;
 
 import bm.b0b0b0.soulKeep.command.KeepSoulCommand;
 import bm.b0b0b0.soulKeep.config.PluginConfig;
+import bm.b0b0b0.soulKeep.gui.GuiItemFactory;
+import bm.b0b0b0.soulKeep.gui.ProtectionMenuFactory;
+import bm.b0b0b0.soulKeep.gui.ProtectionMenuListener;
+import bm.b0b0b0.soulKeep.gui.ProtectionMenuService;
 import bm.b0b0b0.soulKeep.database.AsyncDatabaseExecutor;
 import bm.b0b0b0.soulKeep.database.DatabaseConnectionProvider;
 import bm.b0b0b0.soulKeep.database.PlayerProtectionDao;
@@ -50,7 +54,21 @@ public final class PluginContext {
                 pendingRestoreStore,
                 messageService,
                 inventoryRestoreService);
-        KeepSoulCommand keepSoulCommand = new KeepSoulCommand(protectionManagementService, messageService);
+        GuiItemFactory guiItemFactory = new GuiItemFactory(messageService);
+        ProtectionMenuFactory protectionMenuFactory = new ProtectionMenuFactory(
+                pluginConfig.getGuiSettings(),
+                pluginConfig.getPermissionSlots(),
+                chanceCalculationService,
+                guiItemFactory,
+                protectionManagementService,
+                messageService);
+        ProtectionMenuService protectionMenuService = new ProtectionMenuService(
+                protectionManagementService,
+                protectionMenuFactory);
+        KeepSoulCommand keepSoulCommand = new KeepSoulCommand(
+                protectionManagementService,
+                protectionMenuService,
+                messageService);
 
         registerListeners(plugin, deathProtectionService, playerProtectionRepository, pendingRestoreStore);
         registerCommands(plugin, keepSoulCommand);
@@ -76,6 +94,7 @@ public final class PluginContext {
                         deathProtectionService,
                         pendingRestoreStore),
                 plugin);
+        plugin.getServer().getPluginManager().registerEvents(new ProtectionMenuListener(), plugin);
     }
 
     private static void registerCommands(JavaPlugin plugin, KeepSoulCommand keepSoulCommand) {

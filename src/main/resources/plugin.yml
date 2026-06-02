@@ -1,0 +1,22 @@
+name: SoulKeep
+version: '${version}'
+main: bm.b0b0b0.soulKeep.SoulKeep
+api-version: '1.21'
+authors: [ b0b0b0 ]
+
+libraries:
+  - com.zaxxer:HikariCP:6.2.1
+  - org.xerial:sqlite-jdbc:3.49.1.0
+  - net.elytrium:serializer:1.1.1
+
+commands:
+  keepsoul:
+    description: Управление защитой предметов при смерти
+    usage: /keepsoul <add|remove|list|clear>
+    aliases: [ ks, soulkeep ]
+    permission: keepsoul.use
+
+permissions:
+  keepsoul.use:
+    description: Использование команд SoulKeep
+    default: true

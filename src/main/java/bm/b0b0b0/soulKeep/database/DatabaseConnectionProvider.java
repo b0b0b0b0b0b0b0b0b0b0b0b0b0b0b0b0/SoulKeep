@@ -25,7 +25,7 @@ public final class DatabaseConnectionProvider {
         config.setPoolName("SoulKeep-SQLite");
         config.setDriverClassName("org.sqlite.JDBC");
         this.dataSource = new HikariDataSource(config);
-        new PlayerProtectionSchemaInitializer(this).initialize();
+        new SoulKeepSchemaInitializer(this).initialize();
     }
 
     public Connection openConnection() throws SQLException {

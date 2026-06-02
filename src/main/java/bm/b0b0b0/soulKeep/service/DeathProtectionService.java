@@ -2,8 +2,8 @@ package bm.b0b0b0.soulKeep.service;
 
 import bm.b0b0b0.soulKeep.message.MessageService;
 import bm.b0b0b0.soulKeep.model.PlayerProtectionData;
+import bm.b0b0b0.soulKeep.repository.PendingRestoreRepository;
 import bm.b0b0b0.soulKeep.repository.PlayerProtectionRepository;
-import bm.b0b0b0.soulKeep.store.PendingRestoreStore;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -19,21 +19,18 @@ public final class DeathProtectionService {
 
     private final PlayerProtectionRepository repository;
     private final ChanceCalculationService chanceService;
-    private final PendingRestoreStore pendingStore;
+    private final PendingRestoreRepository pendingRestoreRepository;
     private final MessageService messages;
-    private final InventoryRestoreService inventoryRestoreService;
 
     public DeathProtectionService(
             PlayerProtectionRepository repository,
             ChanceCalculationService chanceService,
-            PendingRestoreStore pendingStore,
-            MessageService messages,
-            InventoryRestoreService inventoryRestoreService) {
+            PendingRestoreRepository pendingRestoreRepository,
+            MessageService messages) {
         this.repository = repository;
         this.chanceService = chanceService;
-        this.pendingStore = pendingStore;
+        this.pendingRestoreRepository = pendingRestoreRepository;
         this.messages = messages;
-        this.inventoryRestoreService = inventoryRestoreService;
     }
 
     public void handleDeath(PlayerDeathEvent event) {
@@ -67,15 +64,13 @@ public final class DeathProtectionService {
             messages.send(player, "death.nothing-saved");
             return;
         }
-        pendingStore.put(player.getUniqueId(), saved);
-        messages.send(player, "death.saved", Map.of("count", String.valueOf(saved.size())));
+        pendingRestoreRepository.stage(
+                player.getUniqueId(),
+                saved,
+                () -> messages.send(player, "death.saved", Map.of("count", String.valueOf(saved.size()))));
     }
 
-    public void handleRespawn(Player player) {
-        if (!pendingStore.hasPending(player.getUniqueId())) {
-            return;
-        }
-        List<ItemStack> stacks = pendingStore.take(player.getUniqueId());
-        inventoryRestoreService.giveToPlayer(player, stacks);
+    public void deliverPending(Player player) {
+        pendingRestoreRepository.deliverIfPresent(player);
     }
 }

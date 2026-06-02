@@ -8,17 +8,19 @@ import bm.b0b0b0.soulKeep.gui.ProtectionMenuListener;
 import bm.b0b0b0.soulKeep.gui.ProtectionMenuService;
 import bm.b0b0b0.soulKeep.database.AsyncDatabaseExecutor;
 import bm.b0b0b0.soulKeep.database.DatabaseConnectionProvider;
+import bm.b0b0b0.soulKeep.database.PendingRestoreDao;
 import bm.b0b0b0.soulKeep.database.PlayerProtectionDao;
 import bm.b0b0b0.soulKeep.listener.DeathProtectionListener;
 import bm.b0b0b0.soulKeep.listener.PlayerDataLifecycleListener;
 import bm.b0b0b0.soulKeep.listener.RespawnRestoreListener;
 import bm.b0b0b0.soulKeep.message.MessageService;
+import bm.b0b0b0.soulKeep.persistence.SqlitePendingRestorePersistence;
+import bm.b0b0b0.soulKeep.repository.PendingRestoreRepository;
 import bm.b0b0b0.soulKeep.repository.PlayerProtectionRepository;
 import bm.b0b0b0.soulKeep.service.ChanceCalculationService;
 import bm.b0b0b0.soulKeep.service.DeathProtectionService;
 import bm.b0b0b0.soulKeep.service.InventoryRestoreService;
 import bm.b0b0b0.soulKeep.service.ProtectionManagementService;
-import bm.b0b0b0.soulKeep.store.PendingRestoreStore;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class PluginContext {
@@ -31,18 +33,21 @@ public final class PluginContext {
                 new DatabaseConnectionProvider(plugin, pluginConfig.getDatabaseSettings());
         AsyncDatabaseExecutor asyncDatabaseExecutor = new AsyncDatabaseExecutor(plugin);
         PlayerProtectionDao playerProtectionDao = new PlayerProtectionDao(databaseConnectionProvider);
+        PendingRestoreDao pendingRestoreDao = new PendingRestoreDao(databaseConnectionProvider);
         PlayerProtectionRepository playerProtectionRepository =
                 new PlayerProtectionRepository(plugin, playerProtectionDao, asyncDatabaseExecutor);
+        InventoryRestoreService inventoryRestoreService = new InventoryRestoreService();
+        PendingRestoreRepository pendingRestoreRepository = new PendingRestoreRepository(
+                plugin,
+                new SqlitePendingRestorePersistence(pendingRestoreDao),
+                asyncDatabaseExecutor,
+                inventoryRestoreService);
         this.lifecycle = new PluginLifecycle(databaseConnectionProvider, playerProtectionRepository);
-        plugin.getServer().getOnlinePlayers().forEach(player ->
-                playerProtectionRepository.loadAsync(player.getUniqueId()));
 
         MessageService messageService = new MessageService(plugin);
-        PendingRestoreStore pendingRestoreStore = new PendingRestoreStore();
         ChanceCalculationService chanceCalculationService = new ChanceCalculationService(
                 pluginConfig.getChanceSettings(),
                 pluginConfig.getPermissionBoosts());
-        InventoryRestoreService inventoryRestoreService = new InventoryRestoreService();
         ProtectionManagementService protectionManagementService = new ProtectionManagementService(
                 playerProtectionRepository,
                 pluginConfig.getPermissionSlots(),
@@ -51,9 +56,12 @@ public final class PluginContext {
         DeathProtectionService deathProtectionService = new DeathProtectionService(
                 playerProtectionRepository,
                 chanceCalculationService,
-                pendingRestoreStore,
-                messageService,
-                inventoryRestoreService);
+                pendingRestoreRepository,
+                messageService);
+        plugin.getServer().getOnlinePlayers().forEach(player -> {
+            playerProtectionRepository.loadAsync(player.getUniqueId());
+            deathProtectionService.deliverPending(player);
+        });
         GuiItemFactory guiItemFactory = new GuiItemFactory(messageService);
         ProtectionMenuFactory protectionMenuFactory = new ProtectionMenuFactory(
                 pluginConfig.getGuiSettings(),
@@ -70,7 +78,7 @@ public final class PluginContext {
                 protectionMenuService,
                 messageService);
 
-        registerListeners(plugin, deathProtectionService, playerProtectionRepository, pendingRestoreStore);
+        registerListeners(plugin, deathProtectionService, playerProtectionRepository);
         registerCommands(plugin, keepSoulCommand);
     }
 
@@ -81,18 +89,13 @@ public final class PluginContext {
     private static void registerListeners(
             JavaPlugin plugin,
             DeathProtectionService deathProtectionService,
-            PlayerProtectionRepository playerProtectionRepository,
-            PendingRestoreStore pendingRestoreStore) {
+            PlayerProtectionRepository playerProtectionRepository) {
         plugin.getServer().getPluginManager().registerEvents(
                 new DeathProtectionListener(deathProtectionService), plugin);
         plugin.getServer().getPluginManager().registerEvents(
                 new RespawnRestoreListener(plugin, deathProtectionService), plugin);
         plugin.getServer().getPluginManager().registerEvents(
-                new PlayerDataLifecycleListener(
-                        plugin,
-                        playerProtectionRepository,
-                        deathProtectionService,
-                        pendingRestoreStore),
+                new PlayerDataLifecycleListener(plugin, playerProtectionRepository, deathProtectionService),
                 plugin);
         plugin.getServer().getPluginManager().registerEvents(new ProtectionMenuListener(), plugin);
     }

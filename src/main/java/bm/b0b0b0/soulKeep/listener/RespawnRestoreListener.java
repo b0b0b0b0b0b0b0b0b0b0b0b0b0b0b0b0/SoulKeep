@@ -28,7 +28,7 @@ public final class RespawnRestoreListener implements Listener {
                 if (!player.isOnline()) {
                     return;
                 }
-                deathProtectionService.handleRespawn(player);
+                deathProtectionService.deliverPending(player);
             }
         }.runTask(plugin);
     }

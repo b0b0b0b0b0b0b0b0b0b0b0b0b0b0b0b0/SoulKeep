@@ -5,6 +5,8 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public final class MessageService {
@@ -43,6 +45,18 @@ public final class MessageService {
         return applyPlaceholders(raw, placeholders);
     }
 
+    public List<String> resolveRawLines(String path, Map<String, String> placeholders) {
+        List<String> lines = resolveRawLines(path);
+        if (lines.isEmpty()) {
+            return List.of();
+        }
+        List<String> resolved = new ArrayList<>(lines.size());
+        for (String line : lines) {
+            resolved.add(applyPlaceholders(line, placeholders));
+        }
+        return resolved;
+    }
+
     private String resolveRaw(String path) {
         return switch (path) {
             case "command.player-only" -> messages.command.playerOnly;
@@ -72,8 +86,16 @@ public final class MessageService {
             case "gui.protected-slot-name" -> messages.gui.protectedSlotName;
             case "gui.protected-slot-lore" -> messages.gui.protectedSlotLore;
             case "gui.slot-locked" -> messages.gui.slotLocked;
+            case "gui.info-name" -> messages.gui.infoName;
             default -> null;
         };
+    }
+
+    private List<String> resolveRawLines(String path) {
+        if ("gui.info-lore".equals(path)) {
+            return messages.gui.infoLore;
+        }
+        return List.of();
     }
 
     private String applyPlaceholders(String template, Map<String, String> placeholders) {

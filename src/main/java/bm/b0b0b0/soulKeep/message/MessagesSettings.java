@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 @RegisterPlaceholders({"prefix"})
 public final class MessagesSettings extends YamlSerializable {
@@ -71,5 +72,23 @@ public final class MessagesSettings extends YamlSerializable {
         public String protectedSlotName = "&f{material}";
         public String protectedSlotLore = "&7Шанс: &f{chance}%&7, ЛКМ — убрать";
         public String slotLocked = "{prefix}&cЭтот слот недоступен. Повысьте ранг.";
+        public String infoName = "&e✦ &6Как это работает &e✦";
+        public List<String> infoLore = defaultInfoLore();
+    }
+
+    private static List<String> defaultInfoLore() {
+        return List.of(
+                "&8&m                    ",
+                "&7Выберите &fтипы предметов&7, которые могут",
+                "&7удержаться &dдушой &7если повезёт при смерти.",
+                "",
+                "&6▪ &7Пустой слот + предмет в руке &8→ &aдобавить",
+                "&6▪ &7Клик по защищённому слоту &8→ &eубрать",
+                "&6▪ &7При смерти — &fшанс %&7 на каждый тип",
+                "&6▪ &7Успех — сохранится &dодин&7 предмет этого типа",
+                "&6▪ &7После респавна предмет &aвернётся",
+                "",
+                "&8Один тип — один слот. Повторы не нужны."
+        );
     }
 }

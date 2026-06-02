@@ -41,7 +41,9 @@ public final class ProtectionManagementService {
         if (data.getProtectedCount() >= max) {
             return AddResult.LIMIT_REACHED;
         }
-        data.add(material);
+        if (!data.add(material)) {
+            return AddResult.ALREADY_PROTECTED;
+        }
         repository.saveAsync(data);
         messages.send(player, "protection.added", Map.of(
                 "material", formatMaterial(material),

@@ -138,6 +138,11 @@ public final class ProtectionMenu implements InventoryHolder {
             }
             inventory.setItem(inventorySlot, itemFactory.emptySlot(guiSettings.getEmptySlotMaterial()));
         }
+        if (guiSettings.isInfoEnabled()) {
+            inventory.setItem(
+                    guiSettings.getInfoSlot(),
+                    itemFactory.infoButton(guiSettings.getInfoMaterial()));
+        }
     }
 
     @Override

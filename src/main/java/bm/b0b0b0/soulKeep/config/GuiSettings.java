@@ -10,15 +10,18 @@ public final class GuiSettings {
     private final String fillerMaterial;
     private final String emptySlotMaterial;
     private final String lockedSlotMaterial;
+    private final int infoSlot;
+    private final String infoMaterial;
 
-    public GuiSettings(SoulKeepSettings settings) {
-        SoulKeepSettings.GuiSection section = settings.gui;
-        this.title = section.title;
-        this.rows = section.rows;
-        this.slotPositions = List.copyOf(section.slotPositions);
-        this.fillerMaterial = section.fillerMaterial;
-        this.emptySlotMaterial = section.emptySlotMaterial;
-        this.lockedSlotMaterial = section.lockedSlotMaterial;
+    public GuiSettings(GuiMainSettings settings) {
+        this.title = settings.title;
+        this.rows = settings.rows;
+        this.slotPositions = List.copyOf(settings.slotPositions);
+        this.fillerMaterial = settings.fillerMaterial;
+        this.emptySlotMaterial = settings.emptySlotMaterial;
+        this.lockedSlotMaterial = settings.lockedSlotMaterial;
+        this.infoSlot = settings.infoSlot;
+        this.infoMaterial = settings.infoMaterial;
     }
 
     public String getTitle() {
@@ -59,5 +62,17 @@ public final class GuiSettings {
 
     public int logicalIndexFor(int inventorySlot) {
         return slotPositions.indexOf(inventorySlot);
+    }
+
+    public boolean isInfoEnabled() {
+        return infoSlot >= 0 && infoSlot < getSize();
+    }
+
+    public int getInfoSlot() {
+        return infoSlot;
+    }
+
+    public String getInfoMaterial() {
+        return infoMaterial;
     }
 }

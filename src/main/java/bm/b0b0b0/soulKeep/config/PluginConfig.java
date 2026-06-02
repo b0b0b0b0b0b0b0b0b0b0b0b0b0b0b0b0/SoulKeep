@@ -19,7 +19,9 @@ public final class PluginConfig {
         this.permissionBoosts = new PermissionBoostTable(settings);
         this.permissionSlots = new PermissionSlotTable(settings);
         this.databaseSettings = new DatabaseSettings(settings);
-        this.guiSettings = new GuiSettings(settings);
+        GuiMainSettings guiMainSettings = new GuiMainSettings();
+        guiMainSettings.load(plugin);
+        this.guiSettings = new GuiSettings(guiMainSettings);
     }
 
     public SoulChanceSettings getChanceSettings() {

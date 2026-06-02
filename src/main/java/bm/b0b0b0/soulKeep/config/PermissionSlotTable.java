@@ -2,23 +2,28 @@ package bm.b0b0b0.soulKeep.config;
 
 import org.bukkit.entity.Player;
 
-import java.util.Map;
-
 public final class PermissionSlotTable {
 
-    private static final int FALLBACK_SLOTS = 1;
-
-    private final Map<String, Integer> slotsByPermission;
+    private final String prefix;
+    private final int min;
+    private final int max;
+    private final int defaultSlots;
 
     public PermissionSlotTable(SoulKeepSettings settings) {
-        this.slotsByPermission = Map.copyOf(settings.permissionSlots);
+        SoulKeepSettings.SlotsPermissionSection section = settings.permissions.slots;
+        this.prefix = section.prefix;
+        this.min = section.min;
+        this.max = section.max;
+        this.defaultSlots = section.defaultSlots;
     }
 
     public int resolveMaxSlots(Player player) {
-        int maxSlots = FALLBACK_SLOTS;
-        for (Map.Entry<String, Integer> entry : slotsByPermission.entrySet()) {
-            if (player.hasPermission(entry.getKey())) {
-                maxSlots = Math.max(maxSlots, entry.getValue());
+        int maxSlots = defaultSlots;
+        int from = Math.min(min, max);
+        int to = Math.max(min, max);
+        for (int i = from; i <= to; i++) {
+            if (player.hasPermission(prefix + i)) {
+                maxSlots = Math.max(maxSlots, i);
             }
         }
         return maxSlots;

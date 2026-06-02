@@ -34,6 +34,19 @@ public final class GuiItemFactory {
         return displayItem(materialName, "gui.locked-slot-name", "gui.locked-slot-lore", Map.of());
     }
 
+    public ItemStack infoButton(String materialName) {
+        Material material = MaterialParser.parse(materialName).orElse(Material.KNOWLEDGE_BOOK);
+        ItemStack stack = new ItemStack(material);
+        ItemMeta meta = stack.getItemMeta();
+        meta.displayName(LEGACY.deserialize(messages.resolveRaw("gui.info-name", Map.of())));
+        meta.lore(messages.resolveRawLines("gui.info-lore", Map.of()).stream()
+                .map(LEGACY::deserialize)
+                .toList());
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        stack.setItemMeta(meta);
+        return stack;
+    }
+
     public ItemStack protectedSlot(Player viewer, Material material, String chanceText) {
         ItemStack display = ProtectionDisplayStackResolver.resolve(viewer, material);
         ItemMeta meta = display.getItemMeta();

@@ -1,5 +1,6 @@
 package bm.b0b0b0.soulKeep.model;
 
+import bm.b0b0b0.soulKeep.util.ProtectedMaterialNames;
 import org.bukkit.Material;
 
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ public final class PlayerProtectionData {
 
     public PlayerProtectionData(UUID playerId, List<Material> materials) {
         this.playerId = Objects.requireNonNull(playerId);
-        this.protectedMaterials = new ArrayList<>(materials);
+        this.protectedMaterials = new ArrayList<>(ProtectedMaterialNames.dedupeOrdered(materials));
     }
 
     public UUID getPlayerId() {
@@ -42,8 +43,12 @@ public final class PlayerProtectionData {
         return protectedMaterials.get(index);
     }
 
-    public void add(Material material) {
+    public boolean add(Material material) {
+        if (protectedMaterials.contains(material)) {
+            return false;
+        }
         protectedMaterials.add(material);
+        return true;
     }
 
     public void addAt(int index, Material material) {

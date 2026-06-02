@@ -10,10 +10,12 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public final class DeathProtectionService {
 
@@ -44,6 +46,8 @@ public final class DeathProtectionService {
             return;
         }
         List<ItemStack> saved = new ArrayList<>();
+        Set<Material> evaluated = new HashSet<>();
+        Set<Material> savedTypes = new HashSet<>();
         Iterator<ItemStack> iterator = event.getDrops().iterator();
         while (iterator.hasNext()) {
             ItemStack drop = iterator.next();
@@ -54,10 +58,17 @@ public final class DeathProtectionService {
             if (!data.isProtected(material)) {
                 continue;
             }
+            if (savedTypes.contains(material)) {
+                continue;
+            }
+            if (!evaluated.add(material)) {
+                continue;
+            }
             if (!chanceService.rollSuccess(player, material)) {
                 continue;
             }
             saved.add(drop.clone());
+            savedTypes.add(material);
             iterator.remove();
         }
         if (saved.isEmpty()) {

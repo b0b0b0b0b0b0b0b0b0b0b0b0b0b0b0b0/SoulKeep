@@ -3,10 +3,6 @@ package bm.b0b0b0.soulKeep.bootstrap;
 import bm.b0b0b0.soulKeep.command.AdminDebugService;
 import bm.b0b0b0.soulKeep.command.KeepSoulCommand;
 import bm.b0b0b0.soulKeep.config.PluginConfig;
-import bm.b0b0b0.soulKeep.gui.GuiItemFactory;
-import bm.b0b0b0.soulKeep.gui.ProtectionMenuFactory;
-import bm.b0b0b0.soulKeep.gui.ProtectionMenuListener;
-import bm.b0b0b0.soulKeep.gui.ProtectionMenuService;
 import bm.b0b0b0.soulKeep.database.AsyncDatabaseExecutor;
 import bm.b0b0b0.soulKeep.database.DatabaseConnectionProvider;
 import bm.b0b0b0.soulKeep.database.PendingRestoreDao;
@@ -14,6 +10,7 @@ import bm.b0b0b0.soulKeep.database.PlayerProtectionDao;
 import bm.b0b0b0.soulKeep.listener.DeathProtectionListener;
 import bm.b0b0b0.soulKeep.listener.PlayerDataLifecycleListener;
 import bm.b0b0b0.soulKeep.listener.RespawnRestoreListener;
+import bm.b0b0b0.soulKeep.gui.ProtectionMenuListener;
 import bm.b0b0b0.soulKeep.message.MessageService;
 import bm.b0b0b0.soulKeep.persistence.SqlitePendingRestorePersistence;
 import bm.b0b0b0.soulKeep.repository.PendingRestoreRepository;
@@ -21,7 +18,6 @@ import bm.b0b0b0.soulKeep.repository.PlayerProtectionRepository;
 import bm.b0b0b0.soulKeep.service.ChanceCalculationService;
 import bm.b0b0b0.soulKeep.service.DeathProtectionService;
 import bm.b0b0b0.soulKeep.service.InventoryRestoreService;
-import bm.b0b0b0.soulKeep.service.ProtectionManagementService;
 import bm.b0b0b0.soulKeep.util.SoulKeepLog;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -47,46 +43,31 @@ public final class PluginContext {
                 inventoryRestoreService);
         this.lifecycle = new PluginLifecycle(databaseConnectionProvider, playerProtectionRepository);
 
-        MessageService messageService = new MessageService(plugin, pluginConfig.getMessageNotifySettings());
-        ChanceCalculationService chanceCalculationService = new ChanceCalculationService(
+        MessageService bootstrapMessages = new MessageService(plugin, pluginConfig.getMessageNotifySettings());
+        ChanceCalculationService bootstrapChance = new ChanceCalculationService(
                 pluginConfig.getChanceSettings(),
                 pluginConfig.getPermissionBoosts());
-        ProtectionManagementService protectionManagementService = new ProtectionManagementService(
-                playerProtectionRepository,
-                pluginConfig.getPermissionSlots(),
-                chanceCalculationService,
-                messageService);
         DeathProtectionService deathProtectionService = new DeathProtectionService(
                 playerProtectionRepository,
-                chanceCalculationService,
+                bootstrapChance,
                 pendingRestoreRepository,
-                messageService);
+                bootstrapMessages);
         plugin.getServer().getOnlinePlayers().forEach(player -> {
             playerProtectionRepository.loadAsync(player.getUniqueId());
             deathProtectionService.deliverPending(player);
         });
-        GuiItemFactory guiItemFactory = new GuiItemFactory(pluginConfig.getGuiSettings());
-        ProtectionMenuFactory protectionMenuFactory = new ProtectionMenuFactory(
-                pluginConfig.getGuiSettings(),
-                pluginConfig.getPermissionSlots(),
-                chanceCalculationService,
-                guiItemFactory,
-                protectionManagementService,
-                messageService);
-        ProtectionMenuService protectionMenuService = new ProtectionMenuService(
-                protectionManagementService,
-                protectionMenuFactory);
+
+        PluginReloadService reloadService = new PluginReloadService(
+                plugin,
+                playerProtectionRepository,
+                deathProtectionService);
         AdminDebugService adminDebugService = new AdminDebugService(
                 playerProtectionRepository,
                 pendingRestoreRepository,
                 pendingPersistence,
-                chanceCalculationService,
+                bootstrapChance,
                 new SoulKeepLog(plugin));
-        KeepSoulCommand keepSoulCommand = new KeepSoulCommand(
-                protectionManagementService,
-                protectionMenuService,
-                adminDebugService,
-                messageService);
+        KeepSoulCommand keepSoulCommand = new KeepSoulCommand(reloadService, adminDebugService);
 
         registerListeners(plugin, deathProtectionService, playerProtectionRepository);
         registerCommands(plugin, keepSoulCommand);

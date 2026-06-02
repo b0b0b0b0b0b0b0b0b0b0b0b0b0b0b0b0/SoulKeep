@@ -40,6 +40,7 @@ public final class MessagesSettings extends YamlSerializable {
         public String noPermission = "{prefix}&cНет прав.";
         public String playerNotFound = "{prefix}&cИгрок не найден.";
         public String debugDone = "{prefix}&7Debug записан в консоль сервера (&f{player}&7).";
+        public String reloadDone = "{prefix}&aКонфиги SoulKeep перезагружены.";
     }
 
     public static final class ProtectionSection {

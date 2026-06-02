@@ -50,6 +50,7 @@ public final class MessageService {
             case "command.no-permission" -> messages.command.noPermission;
             case "command.player-not-found" -> messages.command.playerNotFound;
             case "command.debug-done" -> messages.command.debugDone;
+            case "command.reload-done" -> messages.command.reloadDone;
             case "protection.added" -> messages.protection.added;
             case "protection.removed" -> messages.protection.removed;
             case "protection.not-protected" -> messages.protection.notProtected;

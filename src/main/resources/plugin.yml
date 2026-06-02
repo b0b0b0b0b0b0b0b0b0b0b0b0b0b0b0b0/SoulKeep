@@ -12,7 +12,7 @@ libraries:
 commands:
   keepsoul:
     description: Управление защитой предметов при смерти
-    usage: /keepsoul
+    usage: /<command> [reload|debug]
     aliases: [ ks, soulkeep ]
     permission: keepsoul.use
 
@@ -22,4 +22,7 @@ permissions:
     default: true
   keepsoul.debug:
     description: Debug-дамп в консоль (/keepsoul debug)
+    default: op
+  keepsoul.reload:
+    description: Перезагрузка config.yml, gui/main.yml, lang/messages.yml
     default: op

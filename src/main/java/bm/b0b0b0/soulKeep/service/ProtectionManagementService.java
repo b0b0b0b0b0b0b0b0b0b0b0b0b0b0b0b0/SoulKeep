@@ -14,17 +14,14 @@ public final class ProtectionManagementService {
 
     private final PlayerProtectionRepository repository;
     private final PermissionSlotTable permissionSlots;
-    private final ChanceCalculationService chanceService;
     private final MessageService messages;
 
     public ProtectionManagementService(
             PlayerProtectionRepository repository,
             PermissionSlotTable permissionSlots,
-            ChanceCalculationService chanceService,
             MessageService messages) {
         this.repository = repository;
         this.permissionSlots = permissionSlots;
-        this.chanceService = chanceService;
         this.messages = messages;
     }
 
@@ -84,53 +81,6 @@ public final class ProtectionManagementService {
         return RemoveResult.SUCCESS;
     }
 
-    public RemoveResult tryRemove(Player player, Material material) {
-        Optional<PlayerProtectionData> dataOptional = requireData(player);
-        if (dataOptional.isEmpty()) {
-            return RemoveResult.DATA_NOT_READY;
-        }
-        PlayerProtectionData data = dataOptional.get();
-        if (!data.isProtected(material)) {
-            return RemoveResult.NOT_PROTECTED;
-        }
-        data.remove(material);
-        repository.saveAsync(data);
-        messages.send(player, "protection.removed", Map.of("material", formatMaterial(material)));
-        return RemoveResult.SUCCESS;
-    }
-
-    public void list(Player player) {
-        Optional<PlayerProtectionData> dataOptional = requireData(player);
-        if (dataOptional.isEmpty()) {
-            return;
-        }
-        PlayerProtectionData data = dataOptional.get();
-        int max = permissionSlots.resolveMaxSlots(player);
-        if (data.getProtectedCount() == 0) {
-            messages.send(player, "protection.list-empty");
-            return;
-        }
-        messages.send(player, "protection.list-header", Map.of(
-                "current", String.valueOf(data.getProtectedCount()),
-                "max", String.valueOf(max)));
-        for (Material material : data.getProtectedMaterials()) {
-            messages.send(player, "protection.list-entry", Map.of(
-                    "material", formatMaterial(material),
-                    "chance", chanceService.formatChance(player, material)));
-        }
-    }
-
-    public void clear(Player player) {
-        Optional<PlayerProtectionData> dataOptional = requireData(player);
-        if (dataOptional.isEmpty()) {
-            return;
-        }
-        PlayerProtectionData data = dataOptional.get();
-        data.clear();
-        repository.saveAsync(data);
-        messages.send(player, "protection.cleared");
-    }
-
     public void sendLimitMessage(Player player) {
         int max = permissionSlots.resolveMaxSlots(player);
         messages.send(player, "protection.limit-reached", Map.of("max", String.valueOf(max)));
@@ -138,10 +88,6 @@ public final class ProtectionManagementService {
 
     public void sendAlreadyProtected(Player player, Material material) {
         messages.send(player, "protection.already-protected", Map.of("material", formatMaterial(material)));
-    }
-
-    public void sendNotProtected(Player player, Material material) {
-        messages.send(player, "protection.not-protected", Map.of("material", formatMaterial(material)));
     }
 
     public Optional<PlayerProtectionData> findData(Player player) {

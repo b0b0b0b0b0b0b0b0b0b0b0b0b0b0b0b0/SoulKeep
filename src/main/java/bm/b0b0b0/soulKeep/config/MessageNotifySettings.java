@@ -15,6 +15,7 @@ public final class MessageNotifySettings {
             case "command.no-permission" -> notify.command.noPermission;
             case "command.player-not-found" -> notify.command.playerNotFound;
             case "command.debug-done" -> notify.command.debugDone;
+            case "command.reload-done" -> notify.command.reloadDone;
             case "protection.added" -> notify.protection.added;
             case "protection.removed" -> notify.protection.removed;
             case "protection.not-protected" -> notify.protection.notProtected;

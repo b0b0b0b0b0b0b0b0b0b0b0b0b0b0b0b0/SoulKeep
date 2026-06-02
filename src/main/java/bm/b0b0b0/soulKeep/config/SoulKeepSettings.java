@@ -148,5 +148,6 @@ public final class SoulKeepSettings extends YamlSerializable {
         public boolean noPermission = true;
         public boolean playerNotFound = true;
         public boolean debugDone = true;
+        public boolean reloadDone = true;
     }
 }

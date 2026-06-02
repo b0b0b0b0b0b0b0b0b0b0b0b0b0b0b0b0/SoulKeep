@@ -59,10 +59,6 @@ public final class PlayerProtectionData {
         protectedMaterials.remove(index);
     }
 
-    public void remove(Material material) {
-        protectedMaterials.remove(material);
-    }
-
     public void clear() {
         protectedMaterials.clear();
     }

@@ -20,9 +20,9 @@ import java.util.Set;
 public final class DeathProtectionService {
 
     private final PlayerProtectionRepository repository;
-    private final ChanceCalculationService chanceService;
+    private ChanceCalculationService chanceService;
     private final PendingRestoreRepository pendingRestoreRepository;
-    private final MessageService messages;
+    private MessageService messages;
 
     public DeathProtectionService(
             PlayerProtectionRepository repository,
@@ -32,6 +32,11 @@ public final class DeathProtectionService {
         this.repository = repository;
         this.chanceService = chanceService;
         this.pendingRestoreRepository = pendingRestoreRepository;
+        this.messages = messages;
+    }
+
+    public void rebind(ChanceCalculationService chanceService, MessageService messages) {
+        this.chanceService = chanceService;
         this.messages = messages;
     }
 

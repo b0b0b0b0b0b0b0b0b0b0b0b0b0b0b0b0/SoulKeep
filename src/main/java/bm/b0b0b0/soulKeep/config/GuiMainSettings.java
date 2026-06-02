@@ -46,7 +46,7 @@ public final class GuiMainSettings extends YamlSerializable {
     private static List<String> defaultInfoLore() {
         return List.of(
                 "",
-                "&7Положи предмет сюда — ты отдаёшь",
+                "&7Положи предмет в свободный слот — ты отдаёшь",
                 "&7ему &dчасть души&7.",
                 "",
                 "&7Когда умрёшь, душа запросит",

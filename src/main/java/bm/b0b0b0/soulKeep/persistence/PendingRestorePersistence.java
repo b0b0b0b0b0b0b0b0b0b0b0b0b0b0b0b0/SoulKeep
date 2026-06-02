@@ -12,5 +12,7 @@ public interface PendingRestorePersistence {
 
     List<PendingRestoreRecord> takeAll(UUID playerId) throws SQLException;
 
+    List<PendingRestoreRecord> peekAll(UUID playerId) throws SQLException;
+
     boolean hasAny(UUID playerId) throws SQLException;
 }

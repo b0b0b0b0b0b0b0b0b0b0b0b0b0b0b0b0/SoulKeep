@@ -90,6 +90,12 @@ public final class PendingRestoreDao {
         }
     }
 
+    public List<PendingRestoreRecord> peekAll(UUID playerId) throws SQLException {
+        try (Connection connection = connectionProvider.openConnection()) {
+            return readAll(connection, playerId);
+        }
+    }
+
     public boolean exists(UUID playerId) throws SQLException {
         try (Connection connection = connectionProvider.openConnection();
              PreparedStatement statement = connection.prepareStatement(EXISTS_SQL)) {

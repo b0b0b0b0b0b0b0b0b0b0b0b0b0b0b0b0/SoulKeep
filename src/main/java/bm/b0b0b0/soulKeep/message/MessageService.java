@@ -1,7 +1,5 @@
 package bm.b0b0b0.soulKeep.message;
 
-import net.elytrium.serializer.placeholders.Placeholders;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -51,6 +49,7 @@ public final class MessageService {
             case "protection.empty-hand" -> messages.protection.emptyHand;
             case "protection.invalid-material" -> messages.protection.invalidMaterial;
             case "protection.data-loading" -> messages.protection.dataLoading;
+            case "protection.fill-order" -> messages.protection.fillOrder;
             case "protection.list-empty" -> messages.protection.listEmpty;
             case "protection.list-header" -> messages.protection.listHeader;
             case "protection.list-entry" -> messages.protection.listEntry;
@@ -69,8 +68,7 @@ public final class MessageService {
     }
 
     private String applyPlaceholders(String template, Map<String, String> placeholders) {
-        String withPrefix = Placeholders.replaceFor(messages, template, messages.prefix);
-        String result = withPrefix;
+        String result = template.replace("{prefix}", messages.prefix);
         for (Map.Entry<String, String> entry : placeholders.entrySet()) {
             result = result.replace("{" + entry.getKey() + "}", entry.getValue());
         }

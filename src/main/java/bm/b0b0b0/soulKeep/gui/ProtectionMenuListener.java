@@ -23,7 +23,7 @@ public final class ProtectionMenuListener implements Listener {
             return;
         }
         event.setCancelled(true);
-        menu.handleClick(player, event.getSlot());
+        menu.handleClick(player, event);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

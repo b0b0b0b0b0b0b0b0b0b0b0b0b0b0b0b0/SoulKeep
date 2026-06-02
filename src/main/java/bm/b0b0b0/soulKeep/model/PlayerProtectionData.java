@@ -2,32 +2,32 @@ package bm.b0b0b0.soulKeep.model;
 
 import org.bukkit.Material;
 
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 public final class PlayerProtectionData {
 
     private final UUID playerId;
-    private final Set<Material> protectedMaterials;
+    private final List<Material> protectedMaterials;
 
     public PlayerProtectionData(UUID playerId) {
         this.playerId = Objects.requireNonNull(playerId);
-        this.protectedMaterials = new LinkedHashSet<>();
+        this.protectedMaterials = new ArrayList<>();
     }
 
-    public PlayerProtectionData(UUID playerId, Set<Material> materials) {
+    public PlayerProtectionData(UUID playerId, List<Material> materials) {
         this.playerId = Objects.requireNonNull(playerId);
-        this.protectedMaterials = new LinkedHashSet<>(materials);
+        this.protectedMaterials = new ArrayList<>(materials);
     }
 
     public UUID getPlayerId() {
         return playerId;
     }
 
-    public Set<Material> getProtectedMaterials() {
-        return Set.copyOf(protectedMaterials);
+    public List<Material> getProtectedMaterials() {
+        return List.copyOf(protectedMaterials);
     }
 
     public int getProtectedCount() {
@@ -38,8 +38,20 @@ public final class PlayerProtectionData {
         return protectedMaterials.contains(material);
     }
 
+    public Material getAt(int index) {
+        return protectedMaterials.get(index);
+    }
+
     public void add(Material material) {
         protectedMaterials.add(material);
+    }
+
+    public void addAt(int index, Material material) {
+        protectedMaterials.add(index, material);
+    }
+
+    public void removeAt(int index) {
+        protectedMaterials.remove(index);
     }
 
     public void remove(Material material) {

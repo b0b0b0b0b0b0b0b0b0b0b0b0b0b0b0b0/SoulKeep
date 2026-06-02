@@ -21,6 +21,7 @@ import bm.b0b0b0.soulKeep.service.ChanceCalculationService;
 import bm.b0b0b0.soulKeep.service.DeathProtectionService;
 import bm.b0b0b0.soulKeep.service.InventoryRestoreService;
 import bm.b0b0b0.soulKeep.service.ProtectionManagementService;
+import bm.b0b0b0.soulKeep.util.SoulKeepLog;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class PluginContext {
@@ -29,6 +30,9 @@ public final class PluginContext {
 
     public PluginContext(JavaPlugin plugin) {
         PluginConfig pluginConfig = new PluginConfig(plugin);
+        SoulKeepLog log = new SoulKeepLog(plugin);
+        log.info("plugin context init");
+
         DatabaseConnectionProvider databaseConnectionProvider =
                 new DatabaseConnectionProvider(plugin, pluginConfig.getDatabaseSettings());
         AsyncDatabaseExecutor asyncDatabaseExecutor = new AsyncDatabaseExecutor(plugin);
@@ -41,23 +45,27 @@ public final class PluginContext {
                 plugin,
                 new SqlitePendingRestorePersistence(pendingRestoreDao),
                 asyncDatabaseExecutor,
-                inventoryRestoreService);
+                inventoryRestoreService,
+                log);
         this.lifecycle = new PluginLifecycle(databaseConnectionProvider, playerProtectionRepository);
 
         MessageService messageService = new MessageService(plugin);
         ChanceCalculationService chanceCalculationService = new ChanceCalculationService(
                 pluginConfig.getChanceSettings(),
-                pluginConfig.getPermissionBoosts());
+                pluginConfig.getPermissionBoosts(),
+                log);
         ProtectionManagementService protectionManagementService = new ProtectionManagementService(
                 playerProtectionRepository,
                 pluginConfig.getPermissionSlots(),
                 chanceCalculationService,
-                messageService);
+                messageService,
+                log);
         DeathProtectionService deathProtectionService = new DeathProtectionService(
                 playerProtectionRepository,
                 chanceCalculationService,
                 pendingRestoreRepository,
-                messageService);
+                messageService,
+                log);
         plugin.getServer().getOnlinePlayers().forEach(player -> {
             playerProtectionRepository.loadAsync(player.getUniqueId());
             deathProtectionService.deliverPending(player);
@@ -69,7 +77,8 @@ public final class PluginContext {
                 chanceCalculationService,
                 guiItemFactory,
                 protectionManagementService,
-                messageService);
+                messageService,
+                log);
         ProtectionMenuService protectionMenuService = new ProtectionMenuService(
                 protectionManagementService,
                 protectionMenuFactory);
@@ -80,6 +89,7 @@ public final class PluginContext {
 
         registerListeners(plugin, deathProtectionService, playerProtectionRepository);
         registerCommands(plugin, keepSoulCommand);
+        log.info("plugin context ready");
     }
 
     public PluginLifecycle getLifecycle() {

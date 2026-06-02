@@ -35,6 +35,7 @@ public final class MessagesSettings extends YamlSerializable {
         public String emptyHand = "{prefix}&cВозьмите предмет в руку или укажите тип.";
         public String invalidMaterial = "{prefix}&cНеизвестный тип предмета: &f{input}";
         public String dataLoading = "{prefix}&7Данные ещё загружаются, подождите.";
+        public String fillOrder = "{prefix}&cСначала заполните предыдущий пустой слот.";
         public String listEmpty = "{prefix}&7Список защиты пуст.";
         public String listHeader = "{prefix}&6Защищённые типы (&f{current}&7/&f{max}&6):";
         public String listEntry = "&7- &f{material} &8(&7{chance}%&8)";

@@ -6,15 +6,16 @@ import bm.b0b0b0.soulKeep.message.MessageService;
 import bm.b0b0b0.soulKeep.model.PlayerProtectionData;
 import bm.b0b0b0.soulKeep.service.ChanceCalculationService;
 import bm.b0b0b0.soulKeep.service.ProtectionManagementService;
+import bm.b0b0b0.soulKeep.util.SoulKeepLog;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +30,7 @@ public final class ProtectionMenu implements InventoryHolder {
     private final GuiItemFactory itemFactory;
     private final ProtectionManagementService protectionService;
     private final MessageService messages;
+    private final SoulKeepLog log;
     private final Inventory inventory;
 
     public ProtectionMenu(
@@ -39,7 +41,8 @@ public final class ProtectionMenu implements InventoryHolder {
             ChanceCalculationService chanceService,
             GuiItemFactory itemFactory,
             ProtectionManagementService protectionService,
-            MessageService messages) {
+            MessageService messages,
+            SoulKeepLog log) {
         this.ownerId = owner.getUniqueId();
         this.guiSettings = guiSettings;
         this.permissionSlots = permissionSlots;
@@ -47,6 +50,7 @@ public final class ProtectionMenu implements InventoryHolder {
         this.itemFactory = itemFactory;
         this.protectionService = protectionService;
         this.messages = messages;
+        this.log = log;
         this.inventory = Bukkit.createInventory(
                 this,
                 guiSettings.getSize(),
@@ -62,10 +66,11 @@ public final class ProtectionMenu implements InventoryHolder {
         return player.getUniqueId().equals(ownerId);
     }
 
-    public void handleClick(Player player, int slot) {
+    public void handleClick(Player player, InventoryClickEvent event) {
         if (!isOwner(player)) {
             return;
         }
+        int slot = event.getSlot();
         if (!guiSettings.isProtectionSlot(slot)) {
             return;
         }
@@ -79,25 +84,40 @@ public final class ProtectionMenu implements InventoryHolder {
             return;
         }
         protectionService.findData(player).ifPresent(data -> {
-            List<Material> protectedList = new ArrayList<>(data.getProtectedMaterials());
-            if (logicalIndex < protectedList.size()) {
-                protectionService.tryRemove(player, protectedList.get(logicalIndex));
+            int count = data.getProtectedCount();
+            if (logicalIndex < count) {
+                log.info(player, "gui remove index=" + logicalIndex + " invSlot=" + slot);
+                protectionService.tryRemoveAtSlot(player, logicalIndex);
                 redraw(player);
                 return;
             }
-            Material fromHand = player.getInventory().getItemInMainHand().getType();
-            if (fromHand.isAir()) {
+            Material toAdd = resolveMaterialToAdd(player, event);
+            log.info(player, "gui add click index=" + logicalIndex + " invSlot=" + slot + " material=" + toAdd.name());
+            if (toAdd.isAir()) {
                 messages.send(player, "protection.empty-hand");
                 return;
             }
-            ProtectionManagementService.AddResult result = protectionService.tryAdd(player, fromHand);
+            ProtectionManagementService.AddResult result = protectionService.tryAddAtSlot(player, toAdd, logicalIndex);
+            log.info(player, "gui add result=" + result.name());
             if (result == ProtectionManagementService.AddResult.ALREADY_PROTECTED) {
-                protectionService.sendAlreadyProtected(player, fromHand);
+                protectionService.sendAlreadyProtected(player, toAdd);
             } else if (result == ProtectionManagementService.AddResult.LIMIT_REACHED) {
                 protectionService.sendLimitMessage(player);
             }
             redraw(player);
         });
+    }
+
+    private Material resolveMaterialToAdd(Player player, InventoryClickEvent event) {
+        ItemStack cursor = event.getCursor();
+        if (cursor != null && !cursor.getType().isAir()) {
+            return cursor.getType();
+        }
+        ItemStack mainHand = player.getInventory().getItemInMainHand();
+        if (!mainHand.getType().isAir()) {
+            return mainHand.getType();
+        }
+        return player.getInventory().getItemInOffHand().getType();
     }
 
     private void redraw(Player player) {
@@ -110,7 +130,7 @@ public final class ProtectionMenu implements InventoryHolder {
             inventory.setItem(index, filler);
         }
         int playerMax = permissionSlots.resolveMaxSlots(viewer);
-        List<Material> protectedList = new ArrayList<>(data.getProtectedMaterials());
+        List<Material> protectedList = data.getProtectedMaterials();
         for (int logicalIndex = 0; logicalIndex < guiSettings.getDisplaySlotCount(); logicalIndex++) {
             int inventorySlot = guiSettings.getSlotPositions().get(logicalIndex);
             if (logicalIndex >= playerMax) {
@@ -120,7 +140,7 @@ public final class ProtectionMenu implements InventoryHolder {
             if (logicalIndex < protectedList.size()) {
                 Material material = protectedList.get(logicalIndex);
                 String chance = chanceService.formatChance(viewer, material);
-                inventory.setItem(inventorySlot, itemFactory.protectedType(material, chance));
+                inventory.setItem(inventorySlot, itemFactory.protectedSlot(viewer, material, chance));
                 continue;
             }
             inventory.setItem(inventorySlot, itemFactory.emptySlot(guiSettings.getEmptySlotMaterial()));

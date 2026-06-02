@@ -2,6 +2,7 @@ package bm.b0b0b0.soulKeep.util;
 
 import bm.b0b0b0.soulKeep.model.PendingRestoreRecord;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,14 +13,17 @@ public final class PendingRestoreCodec {
     private PendingRestoreCodec() {
     }
 
-    public static boolean hasItemMeta(ItemStack stack) {
-        ItemStack vanilla = ItemStack.of(stack.getType(), stack.getAmount());
-        return !stack.equals(vanilla);
+    public static boolean requiresBinaryStorage(ItemStack stack) {
+        if (stack.getItemMeta() instanceof Damageable) {
+            return true;
+        }
+        ItemStack reference = ItemStack.of(stack.getType(), stack.getAmount());
+        return !stack.equals(reference);
     }
 
     public static PendingRestoreRecord encode(ItemStack stack) {
         ItemStack clone = stack.clone();
-        if (hasItemMeta(clone)) {
+        if (requiresBinaryStorage(clone)) {
             return PendingRestoreRecord.binary(clone.serializeAsBytes());
         }
         return PendingRestoreRecord.material(clone.getType(), clone.getAmount());

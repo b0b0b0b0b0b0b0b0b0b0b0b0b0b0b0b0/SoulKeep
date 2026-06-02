@@ -26,6 +26,11 @@ public final class SqlitePendingRestorePersistence implements PendingRestorePers
     }
 
     @Override
+    public List<PendingRestoreRecord> peekAll(UUID playerId) throws SQLException {
+        return dao.peekAll(playerId);
+    }
+
+    @Override
     public boolean hasAny(UUID playerId) throws SQLException {
         return dao.exists(playerId);
     }

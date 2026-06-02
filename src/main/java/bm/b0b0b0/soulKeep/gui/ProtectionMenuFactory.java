@@ -6,6 +6,7 @@ import bm.b0b0b0.soulKeep.message.MessageService;
 import bm.b0b0b0.soulKeep.model.PlayerProtectionData;
 import bm.b0b0b0.soulKeep.service.ChanceCalculationService;
 import bm.b0b0b0.soulKeep.service.ProtectionManagementService;
+import bm.b0b0b0.soulKeep.util.SoulKeepLog;
 import org.bukkit.entity.Player;
 
 public final class ProtectionMenuFactory {
@@ -16,6 +17,7 @@ public final class ProtectionMenuFactory {
     private final GuiItemFactory itemFactory;
     private final ProtectionManagementService protectionService;
     private final MessageService messages;
+    private final SoulKeepLog log;
 
     public ProtectionMenuFactory(
             GuiSettings guiSettings,
@@ -23,16 +25,19 @@ public final class ProtectionMenuFactory {
             ChanceCalculationService chanceService,
             GuiItemFactory itemFactory,
             ProtectionManagementService protectionService,
-            MessageService messages) {
+            MessageService messages,
+            SoulKeepLog log) {
         this.guiSettings = guiSettings;
         this.permissionSlots = permissionSlots;
         this.chanceService = chanceService;
         this.itemFactory = itemFactory;
         this.protectionService = protectionService;
         this.messages = messages;
+        this.log = log;
     }
 
     public ProtectionMenu create(Player owner, PlayerProtectionData data) {
+        log.info(owner, "gui open, protected=" + data.getProtectedCount());
         return new ProtectionMenu(
                 owner,
                 data,
@@ -41,6 +46,7 @@ public final class ProtectionMenuFactory {
                 chanceService,
                 itemFactory,
                 protectionService,
-                messages);
+                messages,
+                log);
     }
 }

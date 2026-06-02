@@ -4,9 +4,7 @@ import bm.b0b0b0.soulKeep.util.MaterialParser;
 import org.bukkit.Material;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 public final class ProtectedMaterialCodec {
 
@@ -15,7 +13,7 @@ public final class ProtectedMaterialCodec {
     private ProtectedMaterialCodec() {
     }
 
-    public static String encode(Set<Material> materials) {
+    public static String encode(List<Material> materials) {
         if (materials.isEmpty()) {
             return "";
         }
@@ -26,8 +24,8 @@ public final class ProtectedMaterialCodec {
         return String.join(SEPARATOR, names);
     }
 
-    public static Set<Material> decode(String encoded) {
-        Set<Material> materials = new LinkedHashSet<>();
+    public static List<Material> decode(String encoded) {
+        List<Material> materials = new ArrayList<>();
         if (encoded == null || encoded.isBlank()) {
             return materials;
         }

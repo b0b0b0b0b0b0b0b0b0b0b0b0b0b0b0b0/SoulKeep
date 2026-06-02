@@ -1,0 +1,134 @@
+package bm.b0b0b0.soulKeep.gui;
+
+import bm.b0b0b0.soulKeep.config.GuiSettings;
+import bm.b0b0b0.soulKeep.config.PermissionSlotTable;
+import bm.b0b0b0.soulKeep.message.MessageService;
+import bm.b0b0b0.soulKeep.model.PlayerProtectionData;
+import bm.b0b0b0.soulKeep.service.ChanceCalculationService;
+import bm.b0b0b0.soulKeep.service.ProtectionManagementService;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+public final class ProtectionMenu implements InventoryHolder {
+
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacyAmpersand();
+
+    private final UUID ownerId;
+    private final GuiSettings guiSettings;
+    private final PermissionSlotTable permissionSlots;
+    private final ChanceCalculationService chanceService;
+    private final GuiItemFactory itemFactory;
+    private final ProtectionManagementService protectionService;
+    private final MessageService messages;
+    private final Inventory inventory;
+
+    public ProtectionMenu(
+            Player owner,
+            PlayerProtectionData data,
+            GuiSettings guiSettings,
+            PermissionSlotTable permissionSlots,
+            ChanceCalculationService chanceService,
+            GuiItemFactory itemFactory,
+            ProtectionManagementService protectionService,
+            MessageService messages) {
+        this.ownerId = owner.getUniqueId();
+        this.guiSettings = guiSettings;
+        this.permissionSlots = permissionSlots;
+        this.chanceService = chanceService;
+        this.itemFactory = itemFactory;
+        this.protectionService = protectionService;
+        this.messages = messages;
+        this.inventory = Bukkit.createInventory(
+                this,
+                guiSettings.getSize(),
+                LEGACY.deserialize(guiSettings.getTitle()));
+        draw(owner, data);
+    }
+
+    public UUID getOwnerId() {
+        return ownerId;
+    }
+
+    public boolean isOwner(Player player) {
+        return player.getUniqueId().equals(ownerId);
+    }
+
+    public void handleClick(Player player, int slot) {
+        if (!isOwner(player)) {
+            return;
+        }
+        if (!guiSettings.isProtectionSlot(slot)) {
+            return;
+        }
+        int logicalIndex = guiSettings.logicalIndexFor(slot);
+        if (logicalIndex < 0) {
+            return;
+        }
+        int playerMax = permissionSlots.resolveMaxSlots(player);
+        if (logicalIndex >= playerMax) {
+            messages.send(player, "gui.slot-locked");
+            return;
+        }
+        protectionService.findData(player).ifPresent(data -> {
+            List<Material> protectedList = new ArrayList<>(data.getProtectedMaterials());
+            if (logicalIndex < protectedList.size()) {
+                protectionService.tryRemove(player, protectedList.get(logicalIndex));
+                redraw(player);
+                return;
+            }
+            Material fromHand = player.getInventory().getItemInMainHand().getType();
+            if (fromHand.isAir()) {
+                messages.send(player, "protection.empty-hand");
+                return;
+            }
+            ProtectionManagementService.AddResult result = protectionService.tryAdd(player, fromHand);
+            if (result == ProtectionManagementService.AddResult.ALREADY_PROTECTED) {
+                protectionService.sendAlreadyProtected(player, fromHand);
+            } else if (result == ProtectionManagementService.AddResult.LIMIT_REACHED) {
+                protectionService.sendLimitMessage(player);
+            }
+            redraw(player);
+        });
+    }
+
+    private void redraw(Player player) {
+        protectionService.findData(player).ifPresent(data -> draw(player, data));
+    }
+
+    private void draw(Player viewer, PlayerProtectionData data) {
+        ItemStack filler = itemFactory.filler(guiSettings.getFillerMaterial());
+        for (int index = 0; index < inventory.getSize(); index++) {
+            inventory.setItem(index, filler);
+        }
+        int playerMax = permissionSlots.resolveMaxSlots(viewer);
+        List<Material> protectedList = new ArrayList<>(data.getProtectedMaterials());
+        for (int logicalIndex = 0; logicalIndex < guiSettings.getDisplaySlotCount(); logicalIndex++) {
+            int inventorySlot = guiSettings.getSlotPositions().get(logicalIndex);
+            if (logicalIndex >= playerMax) {
+                inventory.setItem(inventorySlot, itemFactory.lockedSlot(guiSettings.getLockedSlotMaterial()));
+                continue;
+            }
+            if (logicalIndex < protectedList.size()) {
+                Material material = protectedList.get(logicalIndex);
+                String chance = chanceService.formatChance(viewer, material);
+                inventory.setItem(inventorySlot, itemFactory.protectedType(material, chance));
+                continue;
+            }
+            inventory.setItem(inventorySlot, itemFactory.emptySlot(guiSettings.getEmptySlotMaterial()));
+        }
+    }
+
+    @Override
+    public Inventory getInventory() {
+        return inventory;
+    }
+}

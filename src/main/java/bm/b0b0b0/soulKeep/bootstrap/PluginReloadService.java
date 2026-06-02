@@ -41,6 +41,7 @@ public final class PluginReloadService {
         protectionManagementService = new ProtectionManagementService(
                 protectionRepository,
                 pluginConfig.getPermissionSlots(),
+                pluginConfig.getProtectionSettings(),
                 messageService);
         GuiItemFactory guiItemFactory = new GuiItemFactory(pluginConfig.getGuiSettings());
         ProtectionMenuFactory protectionMenuFactory = new ProtectionMenuFactory(
@@ -53,7 +54,10 @@ public final class PluginReloadService {
         protectionMenuService = new ProtectionMenuService(
                 protectionManagementService,
                 protectionMenuFactory);
-        deathProtectionService.rebind(chanceCalculationService, messageService);
+        deathProtectionService.rebind(
+                pluginConfig.getProtectionSettings(),
+                chanceCalculationService,
+                messageService);
     }
 
     public MessageService getMessageService() {

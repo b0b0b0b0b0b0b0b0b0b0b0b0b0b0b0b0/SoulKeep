@@ -44,7 +44,7 @@ public final class MessagesSettings extends YamlSerializable {
     }
 
     public static final class ProtectionSection {
-        public String added = "{prefix}&aТип &f{material} &aдобавлен в защиту (&f{current}&7/&f{max}&a).";
+        public String added = "{prefix}&aТип &f{material} &a(x&f{amount}&a) добавлен (&f{current}&7/&f{max}&a).";
         public String removed = "{prefix}&eТип &f{material} &eубран из защиты.";
         public String notProtected = "{prefix}&cТип &f{material} &cне в списке защиты.";
         public String alreadyProtected = "{prefix}&cТип &f{material} &cуже защищён.";

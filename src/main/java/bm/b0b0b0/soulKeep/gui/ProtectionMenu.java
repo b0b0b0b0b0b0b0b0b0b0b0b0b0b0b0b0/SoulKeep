@@ -1,26 +1,23 @@
 package bm.b0b0b0.soulKeep.gui;
 
 import bm.b0b0b0.soulKeep.config.GuiSettings;
+import bm.b0b0b0.soulKeep.config.LockedSlotLabel;
 import bm.b0b0b0.soulKeep.config.PermissionSlotTable;
 import bm.b0b0b0.soulKeep.message.MessageService;
 import bm.b0b0b0.soulKeep.model.PlayerProtectionData;
 import bm.b0b0b0.soulKeep.service.ChanceCalculationService;
 import bm.b0b0b0.soulKeep.service.ProtectionManagementService;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import bm.b0b0b0.soulKeep.util.TextParser;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.List;
 import java.util.UUID;
 
 public final class ProtectionMenu implements InventoryHolder {
-
-    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacyAmpersand();
 
     private final UUID ownerId;
     private final GuiSettings guiSettings;
@@ -50,7 +47,7 @@ public final class ProtectionMenu implements InventoryHolder {
         this.inventory = Bukkit.createInventory(
                 this,
                 guiSettings.getSize(),
-                LEGACY.deserialize(guiSettings.getTitle()));
+                TextParser.parse(guiSettings.getTitle()));
         draw(owner, data);
     }
 
@@ -86,14 +83,14 @@ public final class ProtectionMenu implements InventoryHolder {
                 redraw(player);
                 return;
             }
-            Material toAdd = resolveMaterialToAdd(player, event);
-            if (toAdd.isAir()) {
+            ItemStack toAdd = resolveStackToAdd(player, event);
+            if (toAdd == null || toAdd.getType().isAir()) {
                 messages.send(player, "protection.empty-hand");
                 return;
             }
             ProtectionManagementService.AddResult result = protectionService.tryAddAtSlot(player, toAdd, logicalIndex);
             if (result == ProtectionManagementService.AddResult.ALREADY_PROTECTED) {
-                protectionService.sendAlreadyProtected(player, toAdd);
+                protectionService.sendAlreadyProtected(player, toAdd.getType());
             } else if (result == ProtectionManagementService.AddResult.LIMIT_REACHED) {
                 protectionService.sendLimitMessage(player);
             }
@@ -101,16 +98,20 @@ public final class ProtectionMenu implements InventoryHolder {
         });
     }
 
-    private Material resolveMaterialToAdd(Player player, InventoryClickEvent event) {
+    private ItemStack resolveStackToAdd(Player player, InventoryClickEvent event) {
         ItemStack cursor = event.getCursor();
         if (cursor != null && !cursor.getType().isAir()) {
-            return cursor.getType();
+            return cursor.clone();
         }
         ItemStack mainHand = player.getInventory().getItemInMainHand();
         if (!mainHand.getType().isAir()) {
-            return mainHand.getType();
+            return mainHand.clone();
         }
-        return player.getInventory().getItemInOffHand().getType();
+        ItemStack offHand = player.getInventory().getItemInOffHand();
+        if (!offHand.getType().isAir()) {
+            return offHand.clone();
+        }
+        return null;
     }
 
     private void redraw(Player player) {
@@ -123,17 +124,19 @@ public final class ProtectionMenu implements InventoryHolder {
             inventory.setItem(index, filler);
         }
         int playerMax = permissionSlots.resolveMaxSlots(viewer);
-        List<Material> protectedList = data.getProtectedMaterials();
         for (int logicalIndex = 0; logicalIndex < guiSettings.getDisplaySlotCount(); logicalIndex++) {
             int inventorySlot = guiSettings.getSlotPositions().get(logicalIndex);
             if (logicalIndex >= playerMax) {
-                inventory.setItem(inventorySlot, itemFactory.lockedSlot(guiSettings.getLockedSlotMaterial()));
+                LockedSlotLabel locked = guiSettings.resolveLockedSlot(logicalIndex + 1);
+                inventory.setItem(inventorySlot, itemFactory.lockedSlot(guiSettings.getLockedSlotMaterial(), locked));
                 continue;
             }
-            if (logicalIndex < protectedList.size()) {
-                Material material = protectedList.get(logicalIndex);
-                String chance = chanceService.formatChance(viewer, material);
-                inventory.setItem(inventorySlot, itemFactory.protectedSlot(viewer, material, chance));
+            if (logicalIndex < data.getProtectedCount()) {
+                var entry = data.getEntryAt(logicalIndex);
+                String chance = chanceService.formatChance(viewer, entry.material());
+                inventory.setItem(
+                        inventorySlot,
+                        itemFactory.protectedSlot(viewer, entry.material(), entry.amount(), chance));
                 continue;
             }
             inventory.setItem(inventorySlot, itemFactory.emptySlot(guiSettings.getEmptySlotMaterial()));

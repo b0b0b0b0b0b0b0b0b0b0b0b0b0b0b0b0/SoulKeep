@@ -1,5 +1,6 @@
 package bm.b0b0b0.soulKeep.config;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +18,7 @@ public final class GuiSettings {
     private final String emptySlotName;
     private final String lockedSlotName;
     private final String lockedSlotLore;
+    private final Map<Integer, LockedSlotLabel> lockedSlotTiers;
     private final String protectedSlotName;
     private final String protectedSlotLore;
     private final String infoName;
@@ -35,6 +37,7 @@ public final class GuiSettings {
         this.emptySlotName = settings.emptySlotName;
         this.lockedSlotName = settings.lockedSlotName;
         this.lockedSlotLore = settings.lockedSlotLore;
+        this.lockedSlotTiers = parseLockedTiers(settings.lockedSlotTiers);
         this.protectedSlotName = settings.protectedSlotName;
         this.protectedSlotLore = settings.protectedSlotLore;
         this.infoName = settings.infoName;
@@ -109,12 +112,12 @@ public final class GuiSettings {
         return emptySlotName;
     }
 
-    public String getLockedSlotName() {
-        return lockedSlotName;
-    }
-
-    public String getLockedSlotLore() {
-        return lockedSlotLore;
+    public LockedSlotLabel resolveLockedSlot(int requiredSlots) {
+        LockedSlotLabel label = lockedSlotTiers.get(requiredSlots);
+        if (label != null) {
+            return label;
+        }
+        return new LockedSlotLabel(lockedSlotName, lockedSlotLore);
     }
 
     public String getProtectedSlotName(Map<String, String> placeholders) {
@@ -131,5 +134,25 @@ public final class GuiSettings {
 
     public List<String> getInfoLore() {
         return infoLore;
+    }
+
+    private static Map<Integer, LockedSlotLabel> parseLockedTiers(
+            Map<String, GuiMainSettings.LockedSlotTierSection> raw) {
+        Map<Integer, LockedSlotLabel> tiers = new HashMap<>();
+        if (raw == null) {
+            return tiers;
+        }
+        for (Map.Entry<String, GuiMainSettings.LockedSlotTierSection> entry : raw.entrySet()) {
+            try {
+                int slotCount = Integer.parseInt(entry.getKey().trim());
+                GuiMainSettings.LockedSlotTierSection section = entry.getValue();
+                if (section == null) {
+                    continue;
+                }
+                tiers.put(slotCount, new LockedSlotLabel(section.name, section.lore));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return tiers;
     }
 }

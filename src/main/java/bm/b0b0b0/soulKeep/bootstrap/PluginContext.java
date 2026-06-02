@@ -49,6 +49,7 @@ public final class PluginContext {
                 pluginConfig.getPermissionBoosts());
         DeathProtectionService deathProtectionService = new DeathProtectionService(
                 playerProtectionRepository,
+                pluginConfig.getProtectionSettings(),
                 bootstrapChance,
                 pendingRestoreRepository,
                 bootstrapMessages);

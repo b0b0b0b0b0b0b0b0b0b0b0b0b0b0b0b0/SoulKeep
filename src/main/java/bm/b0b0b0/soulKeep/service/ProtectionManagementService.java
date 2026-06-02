@@ -1,11 +1,14 @@
 package bm.b0b0b0.soulKeep.service;
 
 import bm.b0b0b0.soulKeep.config.PermissionSlotTable;
+import bm.b0b0b0.soulKeep.config.ProtectionSettings;
 import bm.b0b0b0.soulKeep.message.MessageService;
 import bm.b0b0b0.soulKeep.model.PlayerProtectionData;
+import bm.b0b0b0.soulKeep.model.ProtectionEntry;
 import bm.b0b0b0.soulKeep.repository.PlayerProtectionRepository;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Map;
 import java.util.Optional;
@@ -14,42 +17,50 @@ public final class ProtectionManagementService {
 
     private final PlayerProtectionRepository repository;
     private final PermissionSlotTable permissionSlots;
+    private final ProtectionSettings protectionSettings;
     private final MessageService messages;
 
     public ProtectionManagementService(
             PlayerProtectionRepository repository,
             PermissionSlotTable permissionSlots,
+            ProtectionSettings protectionSettings,
             MessageService messages) {
         this.repository = repository;
         this.permissionSlots = permissionSlots;
+        this.protectionSettings = protectionSettings;
         this.messages = messages;
     }
 
-    public AddResult tryAdd(Player player, Material material) {
+    public AddResult tryAdd(Player player, ItemStack source) {
         Optional<PlayerProtectionData> dataOptional = requireData(player);
         if (dataOptional.isEmpty()) {
             return AddResult.DATA_NOT_READY;
         }
+        ProtectionEntry entry = createEntry(source);
+        if (entry.material().isAir()) {
+            return AddResult.DATA_NOT_READY;
+        }
         PlayerProtectionData data = dataOptional.get();
         int max = permissionSlots.resolveMaxSlots(player);
-        if (data.isProtected(material)) {
+        if (data.isProtected(entry.material())) {
             return AddResult.ALREADY_PROTECTED;
         }
         if (data.getProtectedCount() >= max) {
             return AddResult.LIMIT_REACHED;
         }
-        if (!data.add(material)) {
+        if (!data.add(entry)) {
             return AddResult.ALREADY_PROTECTED;
         }
         repository.saveAsync(data);
         messages.send(player, "protection.added", Map.of(
-                "material", formatMaterial(material),
+                "material", formatMaterial(entry.material()),
+                "amount", String.valueOf(entry.amount()),
                 "current", String.valueOf(data.getProtectedCount()),
                 "max", String.valueOf(max)));
         return AddResult.SUCCESS;
     }
 
-    public AddResult tryAddAtSlot(Player player, Material material, int slotIndex) {
+    public AddResult tryAddAtSlot(Player player, ItemStack source, int slotIndex) {
         Optional<PlayerProtectionData> dataOptional = requireData(player);
         if (dataOptional.isEmpty()) {
             return AddResult.DATA_NOT_READY;
@@ -62,7 +73,7 @@ public final class ProtectionManagementService {
         if (slotIndex < data.getProtectedCount()) {
             return AddResult.SLOT_OCCUPIED;
         }
-        return tryAdd(player, material);
+        return tryAdd(player, source);
     }
 
     public RemoveResult tryRemoveAtSlot(Player player, int slotIndex) {
@@ -74,7 +85,7 @@ public final class ProtectionManagementService {
         if (slotIndex < 0 || slotIndex >= data.getProtectedCount()) {
             return RemoveResult.NOT_PROTECTED;
         }
-        Material material = data.getAt(slotIndex);
+        Material material = data.getMaterialAt(slotIndex);
         data.removeAt(slotIndex);
         repository.saveAsync(data);
         messages.send(player, "protection.removed", Map.of("material", formatMaterial(material)));
@@ -92,6 +103,16 @@ public final class ProtectionManagementService {
 
     public Optional<PlayerProtectionData> findData(Player player) {
         return requireData(player);
+    }
+
+    private ProtectionEntry createEntry(ItemStack source) {
+        Material material = source.getType();
+        if (!protectionSettings.isAllowStacks()) {
+            return ProtectionEntry.single(material);
+        }
+        int amount = Math.max(1, source.getAmount());
+        amount = Math.min(amount, material.getMaxStackSize());
+        return ProtectionEntry.of(material, amount);
     }
 
     private Optional<PlayerProtectionData> requireData(Player player) {

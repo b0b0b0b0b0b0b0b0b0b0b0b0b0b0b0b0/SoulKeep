@@ -39,7 +39,7 @@ public final class PlayerProtectionDao {
     }
 
     public void save(PlayerProtectionData data) throws SQLException {
-        String encoded = ProtectedMaterialCodec.encode(data.getProtectedMaterials());
+        String encoded = ProtectedMaterialCodec.encode(data.getEntries());
         try (Connection connection = connectionProvider.openConnection();
              PreparedStatement statement = connection.prepareStatement(UPSERT_SQL)) {
             statement.setString(1, data.getPlayerId().toString());

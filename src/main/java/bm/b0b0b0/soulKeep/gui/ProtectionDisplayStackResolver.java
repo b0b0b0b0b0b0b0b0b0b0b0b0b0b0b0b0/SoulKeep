@@ -10,7 +10,13 @@ public final class ProtectionDisplayStackResolver {
     private ProtectionDisplayStackResolver() {
     }
 
-    public static ItemStack resolve(Player player, Material material) {
+    public static ItemStack resolve(Player player, Material material, int amount) {
+        ItemStack stack = resolvePreview(player, material);
+        stack.setAmount(Math.max(1, Math.min(amount, material.getMaxStackSize())));
+        return stack;
+    }
+
+    private static ItemStack resolvePreview(Player player, Material material) {
         ItemStack fallback = new ItemStack(material);
         ItemStack best = null;
         int bestDamage = -1;
@@ -25,7 +31,6 @@ public final class ProtectionDisplayStackResolver {
             }
         }
         if (best != null) {
-            best.setAmount(1);
             return best;
         }
         return fallback;

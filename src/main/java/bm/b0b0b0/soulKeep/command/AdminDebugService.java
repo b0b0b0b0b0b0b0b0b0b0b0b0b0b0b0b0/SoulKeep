@@ -8,7 +8,6 @@ import bm.b0b0b0.soulKeep.repository.PlayerProtectionRepository;
 import bm.b0b0b0.soulKeep.service.ChanceCalculationService;
 import bm.b0b0b0.soulKeep.util.PendingRestoreCodec;
 import bm.b0b0b0.soulKeep.util.SoulKeepLog;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import java.util.List;
@@ -59,9 +58,10 @@ public final class AdminDebugService {
             PlayerProtectionData protection = data.get();
             log.info(target, "protected count=" + protection.getProtectedCount());
             int index = 0;
-            for (Material material : protection.getProtectedMaterials()) {
-                log.info(target, "slot #" + index + " type=" + material.name()
-                        + " chance=" + chanceService.formatChance(target, material) + "%");
+            for (var entry : protection.getEntries()) {
+                log.info(target, "slot #" + index + " type=" + entry.material().name()
+                        + " amount=" + entry.amount()
+                        + " chance=" + chanceService.formatChance(target, entry.material()) + "%");
                 index++;
             }
         }

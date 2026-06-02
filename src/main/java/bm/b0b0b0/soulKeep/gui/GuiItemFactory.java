@@ -1,8 +1,9 @@
 package bm.b0b0b0.soulKeep.gui;
 
 import bm.b0b0b0.soulKeep.config.GuiSettings;
+import bm.b0b0b0.soulKeep.config.LockedSlotLabel;
 import bm.b0b0b0.soulKeep.util.MaterialParser;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import bm.b0b0b0.soulKeep.util.TextParser;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -13,8 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 public final class GuiItemFactory {
-
-    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacyAmpersand();
 
     private final GuiSettings guiSettings;
 
@@ -30,31 +29,31 @@ public final class GuiItemFactory {
         return displayItem(materialName, guiSettings.getEmptySlotName(), null);
     }
 
-    public ItemStack lockedSlot(String materialName) {
-        return displayItem(materialName, guiSettings.getLockedSlotName(), guiSettings.getLockedSlotLore());
+    public ItemStack lockedSlot(String materialName, LockedSlotLabel label) {
+        return displayItem(materialName, label.name(), label.lore());
     }
 
     public ItemStack infoButton(String materialName) {
         Material material = MaterialParser.parse(materialName).orElse(Material.KNOWLEDGE_BOOK);
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
-        meta.displayName(LEGACY.deserialize(guiSettings.getInfoName()));
+        meta.displayName(TextParser.parse(guiSettings.getInfoName()));
         meta.lore(guiSettings.getInfoLore().stream()
-                .map(LEGACY::deserialize)
+                .map(TextParser::parse)
                 .toList());
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         stack.setItemMeta(meta);
         return stack;
     }
 
-    public ItemStack protectedSlot(Player viewer, Material material, String chanceText) {
-        ItemStack display = ProtectionDisplayStackResolver.resolve(viewer, material);
+    public ItemStack protectedSlot(Player viewer, Material material, int amount, String chanceText) {
+        ItemStack display = ProtectionDisplayStackResolver.resolve(viewer, material, amount);
         ItemMeta meta = display.getItemMeta();
         Map<String, String> placeholders = Map.of(
                 "material", material.name(),
                 "chance", chanceText);
-        meta.displayName(LEGACY.deserialize(guiSettings.getProtectedSlotName(placeholders)));
-        meta.lore(List.of(LEGACY.deserialize(guiSettings.getProtectedSlotLore(placeholders))));
+        meta.displayName(TextParser.parse(guiSettings.getProtectedSlotName(placeholders)));
+        meta.lore(List.of(TextParser.parse(guiSettings.getProtectedSlotLore(placeholders))));
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         display.setItemMeta(meta);
         return display;
@@ -64,9 +63,9 @@ public final class GuiItemFactory {
         Material material = MaterialParser.parse(materialName).orElse(Material.STONE);
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
-        meta.displayName(LEGACY.deserialize(name));
+        meta.displayName(TextParser.parse(name));
         if (loreLine != null) {
-            meta.lore(List.of(LEGACY.deserialize(loreLine)));
+            meta.lore(List.of(TextParser.parse(loreLine)));
         }
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         stack.setItemMeta(meta);

@@ -58,6 +58,12 @@ public final class SoulKeepSettings extends YamlSerializable {
     public static final class SettingsSection {
         @Comment(@CommentValue("Базовый шанс (%) удержать защищённый предмет при смерти"))
         public double defaultChance = 20.0;
+
+        @Comment({
+                @CommentValue("true — в слот сохраняется кол-во из руки/курсора и при смерти"),
+                @CommentValue("удерживается до этого кол-ва. false — только тип, 1 шт.")
+        })
+        public boolean allowStacks = false;
     }
 
     public static final class PermissionsSection {

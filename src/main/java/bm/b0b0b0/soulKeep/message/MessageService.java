@@ -1,15 +1,13 @@
 package bm.b0b0b0.soulKeep.message;
 
 import bm.b0b0b0.soulKeep.config.MessageNotifySettings;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import bm.b0b0b0.soulKeep.util.TextParser;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Map;
 
 public final class MessageService {
-
-    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacyAmpersand();
 
     private final MessagesSettings messages;
     private final MessageNotifySettings notify;
@@ -32,7 +30,7 @@ public final class MessageService {
         if (raw == null || raw.isBlank()) {
             return;
         }
-        sender.sendMessage(LEGACY.deserialize(raw));
+        sender.sendMessage(TextParser.parse(raw));
     }
 
     public String resolveRaw(String path, Map<String, String> placeholders) {

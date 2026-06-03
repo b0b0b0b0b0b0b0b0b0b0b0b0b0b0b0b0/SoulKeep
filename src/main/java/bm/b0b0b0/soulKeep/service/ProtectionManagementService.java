@@ -6,6 +6,7 @@ import bm.b0b0b0.soulKeep.message.MessageService;
 import bm.b0b0b0.soulKeep.model.PlayerProtectionData;
 import bm.b0b0b0.soulKeep.model.ProtectionEntry;
 import bm.b0b0b0.soulKeep.repository.PlayerProtectionRepository;
+import bm.b0b0b0.soulKeep.util.NonEmptyContainerChecker;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -35,6 +36,10 @@ public final class ProtectionManagementService {
         Optional<PlayerProtectionData> dataOptional = requireData(player);
         if (dataOptional.isEmpty()) {
             return AddResult.DATA_NOT_READY;
+        }
+        if (NonEmptyContainerChecker.hasContents(source)) {
+            messages.send(player, "protection.non-empty-container");
+            return AddResult.NON_EMPTY_CONTAINER;
         }
         ProtectionEntry entry = createEntry(source);
         if (entry.material().isAir()) {
@@ -133,7 +138,8 @@ public final class ProtectionManagementService {
         LIMIT_REACHED,
         DATA_NOT_READY,
         SLOT_OUT_OF_ORDER,
-        SLOT_OCCUPIED
+        SLOT_OCCUPIED,
+        NON_EMPTY_CONTAINER
     }
 
     public enum RemoveResult {

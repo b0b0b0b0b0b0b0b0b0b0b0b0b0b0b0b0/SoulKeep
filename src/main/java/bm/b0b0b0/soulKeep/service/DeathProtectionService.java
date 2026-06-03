@@ -6,6 +6,7 @@ import bm.b0b0b0.soulKeep.model.PlayerProtectionData;
 import bm.b0b0b0.soulKeep.model.ProtectionEntry;
 import bm.b0b0b0.soulKeep.repository.PendingRestoreRepository;
 import bm.b0b0b0.soulKeep.repository.PlayerProtectionRepository;
+import bm.b0b0b0.soulKeep.util.NonEmptyContainerChecker;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -89,6 +90,9 @@ public final class DeathProtectionService {
         while (iterator.hasNext() && collected < limit) {
             ItemStack drop = iterator.next();
             if (drop == null || drop.getType() != material) {
+                continue;
+            }
+            if (NonEmptyContainerChecker.hasContents(drop)) {
                 continue;
             }
             int take = Math.min(drop.getAmount(), limit - collected);

@@ -130,6 +130,8 @@ public final class SoulKeepSettings extends YamlSerializable {
         public boolean dataLoading = true;
         @Comment(@CommentValue("Нужно заполнить слоты по порядку"))
         public boolean fillOrder = true;
+        @Comment(@CommentValue("Предмет с содержимым (шалкер, bundle…)"))
+        public boolean nonEmptyContainer = true;
         @Comment(@CommentValue("/keepsoul list — заголовок и строки списка"))
         public boolean list = true;
         @Comment(@CommentValue("Список защиты очищен"))

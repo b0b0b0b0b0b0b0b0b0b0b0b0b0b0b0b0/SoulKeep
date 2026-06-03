@@ -25,6 +25,7 @@ public final class MessageNotifySettings {
             case "protection.invalid-material" -> notify.protection.invalidMaterial;
             case "protection.data-loading" -> notify.protection.dataLoading;
             case "protection.fill-order" -> notify.protection.fillOrder;
+            case "protection.non-empty-container" -> notify.protection.nonEmptyContainer;
             case "protection.list-empty" -> notify.protection.list;
             case "protection.list-header", "protection.list-entry" -> notify.protection.list;
             case "protection.cleared" -> notify.protection.cleared;

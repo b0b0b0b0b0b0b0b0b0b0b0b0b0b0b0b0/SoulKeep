@@ -58,6 +58,7 @@ public final class MessageService {
             case "protection.invalid-material" -> messages.protection.invalidMaterial;
             case "protection.data-loading" -> messages.protection.dataLoading;
             case "protection.fill-order" -> messages.protection.fillOrder;
+            case "protection.non-empty-container" -> messages.protection.nonEmptyContainer;
             case "protection.list-empty" -> messages.protection.listEmpty;
             case "protection.list-header" -> messages.protection.listHeader;
             case "protection.list-entry" -> messages.protection.listEntry;
